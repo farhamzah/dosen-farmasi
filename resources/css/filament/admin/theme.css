@@ -1,0 +1,81 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+@source '../../../../resources/views/components/**/*';
+
+:root {
+    --font-family: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --brand-950: #0a1020;
+    --brand-900: #111a33;
+    --brand-800: #17244a;
+    --brand-700: #1f3470;
+    --brand-600: #2856b7;
+    --surface: #f6f8fb;
+    --border: #dbe3ee;
+}
+
+.fi-body {
+    background:
+        radial-gradient(circle at top left, rgba(40, 86, 183, 0.1), transparent 32rem),
+        linear-gradient(180deg, #f7f9fc 0%, #eef3f8 100%);
+    font-family: var(--font-family);
+}
+
+.fi-sidebar,
+.fi-topbar,
+.fi-panel {
+    backdrop-filter: blur(18px);
+}
+
+.fi-sidebar {
+    border-right: 1px solid rgba(219, 227, 238, 0.92);
+    background: rgba(255, 255, 255, 0.94);
+}
+
+.fi-logo,
+.fi-sidebar-header {
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.fi-sidebar-item-button {
+    min-height: 42px;
+    border-radius: 12px;
+    font-weight: 800;
+}
+
+.fi-sidebar-item-active > .fi-sidebar-item-button {
+    background: linear-gradient(90deg, rgba(40, 86, 183, 0.14), rgba(40, 86, 183, 0.05));
+    box-shadow: inset 3px 0 0 var(--brand-600);
+}
+
+.fi-main {
+    max-width: 1440px;
+}
+
+.fi-section,
+.fi-wi-stats-overview-stat,
+.fi-ta-ctn,
+.fi-fo-component-ctn {
+    border: 1px solid rgba(219, 227, 238, 0.95);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.fi-btn {
+    min-height: 40px;
+    border-radius: 10px;
+    font-weight: 800;
+}
+
+.fi-badge {
+    border-radius: 999px;
+    font-weight: 800;
+}
+
+.fi-ta-header,
+.fi-ta-row {
+    font-size: 0.875rem;
+}
