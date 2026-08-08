@@ -7,6 +7,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -30,12 +31,25 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(fn (): string => asset('images/logo-fakultas-farmasi-ubp.png'))
             ->brandLogoHeight('2.5rem')
             ->darkMode(false)
+            ->sidebarCollapsibleOnDesktop()
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->colors([
                 'primary' => Color::Blue,
                 'success' => Color::Emerald,
                 'warning' => Color::Amber,
                 'danger' => Color::Rose,
+            ])
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label('Ganti peran')
+                    ->icon('heroicon-o-arrows-right-left')
+                    ->url(fn (): string => route('role.select'))
+                    ->visible(fn (): bool => count((array) session('dosen_farmasi.available_roles', [])) > 1),
+                MenuItem::make()
+                    ->label('Ruang dosen')
+                    ->icon('heroicon-o-academic-cap')
+                    ->url(fn (): string => route('dosen.dashboard'))
+                    ->visible(fn (): bool => in_array('dosen', (array) session('dosen_farmasi.available_roles', []), true)),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

@@ -71,12 +71,46 @@ class CoreBridgeAuthTest extends TestCase
 
         $this->assertAuthenticated();
         $this->get(route('dosen.dashboard'))->assertRedirect(route('role.select'));
-        $this->get(route('role.select'))->assertOk()->assertSee('Pilih Role Masuk')->assertSee('Admin')->assertSee('Dosen');
+        $this->get(route('role.select'))->assertOk()->assertSee('Masuk sebagai apa?')->assertSee('Admin')->assertSee('Dosen');
 
         $this->post(route('role.store'), ['role' => 'admin'])
             ->assertRedirect(route('filament.admin.pages.admin-dashboard'));
 
         $this->assertDatabaseHas('app_users', ['core_user_id' => '1', 'role' => 'admin']);
+    }
+
+    public function test_multi_role_user_can_switch_role_from_dosen_workspace(): void
+    {
+        $this->seedCoreUser(role: ['dosen', 'admin']);
+
+        $this->post('/login', ['login' => 'dosen@example.test', 'password' => 'secret'])
+            ->assertRedirect(route('role.select'));
+
+        $this->post(route('role.store'), ['role' => 'dosen'])
+            ->assertRedirect(route('dosen.dashboard'));
+
+        $this->get(route('dosen.dashboard'))
+            ->assertOk()
+            ->assertSee('Ganti Peran')
+            ->assertSee(route('role.select'), false);
+
+        $this->post(route('role.store'), ['role' => 'admin'])
+            ->assertRedirect(route('filament.admin.pages.admin-dashboard'));
+
+        $this->assertDatabaseHas('app_users', ['core_user_id' => '1', 'role' => 'admin']);
+    }
+
+    public function test_single_role_user_does_not_see_switch_role_action(): void
+    {
+        $this->seedCoreUser(role: 'dosen');
+
+        $this->post('/login', ['login' => 'dosen@example.test', 'password' => 'secret'])
+            ->assertRedirect('/dosen/dashboard');
+
+        $this->get(route('dosen.dashboard'))
+            ->assertOk()
+            ->assertDontSee('Ganti Peran')
+            ->assertDontSee(route('role.select'), false);
     }
 
     public function test_wrong_password_is_rejected(): void

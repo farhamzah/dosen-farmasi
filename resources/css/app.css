@@ -28,7 +28,7 @@
     --warning: #b7791f;
     --danger: #be123c;
     --info: #2563eb;
-    --surface: #f6f8fb;
+    --surface: #f4f7fb;
     --surface-elevated: #ffffff;
     --surface-muted: #eef2f7;
     --border: #dbe3ee;
@@ -39,9 +39,9 @@
     --radius-md: 14px;
     --radius-lg: 18px;
     --radius-xl: 24px;
-    --shadow-subtle: 0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 24px rgba(15, 23, 42, 0.06);
-    --shadow-floating: 0 16px 42px rgba(15, 23, 42, 0.12);
-    --shadow-overlay: 0 24px 70px rgba(15, 23, 42, 0.18);
+    --shadow-subtle: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 26px rgba(15, 23, 42, 0.06);
+    --shadow-floating: 0 18px 48px rgba(15, 23, 42, 0.13);
+    --shadow-overlay: 0 28px 80px rgba(15, 23, 42, 0.18);
 }
 
 @layer base {
@@ -50,9 +50,7 @@
     }
 
     body {
-        background:
-            radial-gradient(circle at top left, rgba(40, 86, 183, 0.09), transparent 32rem),
-            linear-gradient(180deg, #f7f9fc 0%, #eef3f8 100%);
+        background: linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%);
         color: var(--text-primary);
     }
 
@@ -76,22 +74,20 @@
 @layer components {
     .df-shell {
         min-height: 100vh;
-        background:
-            linear-gradient(135deg, rgba(40, 86, 183, 0.08), transparent 28rem),
-            var(--surface);
+        background: linear-gradient(180deg, #f8fafc 0%, var(--surface) 100%);
     }
 
     .df-sidebar {
-        width: 16rem;
+        width: 17.5rem;
         border-right: 1px solid rgba(219, 227, 238, 0.9);
-        background: rgba(255, 255, 255, 0.92);
+        background: rgba(255, 255, 255, 0.94);
         box-shadow: var(--shadow-subtle);
         backdrop-filter: blur(18px);
     }
 
     .df-topbar {
         border-bottom: 1px solid rgba(219, 227, 238, 0.9);
-        background: rgba(255, 255, 255, 0.86);
+        background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(18px);
     }
 
@@ -266,6 +262,30 @@
     .df-mobile-bottom-nav {
         padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
         box-shadow: 0 -12px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    @media (max-width: 767px) {
+        .df-content {
+            padding-inline: 0.85rem;
+            padding-top: 1rem;
+        }
+
+        .df-card {
+            border-radius: var(--radius-lg);
+        }
+
+        .df-card,
+        .df-card-muted {
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 22px rgba(15, 23, 42, 0.05);
+        }
+
+        .df-button {
+            width: 100%;
+        }
+
+        .df-page-title {
+            font-size: 1.65rem;
+        }
     }
 
     .df-progress-track {

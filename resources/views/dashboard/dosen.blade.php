@@ -11,6 +11,11 @@
         ['label' => 'Menunggu', 'value' => $pendingCount, 'tone' => 'brand'],
         ['label' => 'Valid', 'value' => $verifiedCount, 'tone' => 'success'],
     ];
+    $readiness = [
+        ['label' => 'Portofolio', 'value' => $portfolioCount, 'note' => 'kegiatan tercatat'],
+        ['label' => 'Dokumen', 'value' => $documentCount, 'note' => 'lampiran tersimpan'],
+        ['label' => 'Agenda', 'value' => $upcomingEvents->count(), 'note' => 'jadwal mendatang'],
+    ];
 @endphp
 
 @section('content')
@@ -26,7 +31,7 @@
         </x-slot:actions>
         <x-slot:aside>
             @if($portfolioCount > 0)
-                <div class="rounded-[var(--radius-lg)] bg-white/82 p-5 ring-1 ring-[var(--border)]">
+                <div class="rounded-[var(--radius-xl)] bg-white/86 p-5 shadow-sm ring-1 ring-[var(--border)]">
                     <p class="text-sm font-bold text-[var(--text-secondary)]">Kesiapan Portofolio</p>
                     <p class="mt-2 text-3xl font-bold text-[var(--text-primary)]">{{ $portfolioProgress }}%</p>
                     <div class="df-progress-track mt-4 h-2.5">
@@ -35,21 +40,32 @@
                     <p class="mt-3 text-sm leading-6 text-[var(--text-secondary)]">{{ $verifiedCount }} dari {{ $portfolioCount }} kegiatan sudah valid.</p>
                 </div>
             @else
-                <div class="rounded-[var(--radius-lg)] bg-white/82 p-5 ring-1 ring-[var(--border)]">
-                    <p class="text-sm font-bold text-[var(--text-secondary)]">Mulai dari satu aktivitas</p>
-                    <p class="mt-2 text-sm leading-6 text-[var(--text-secondary)]">Tambahkan kegiatan pertama atau gunakan data demo lokal untuk menilai tampilan.</p>
+                <div class="rounded-[var(--radius-xl)] bg-[linear-gradient(135deg,#ffffff,#eef4ff)] p-5 shadow-sm ring-1 ring-[var(--border)]">
+                    <p class="text-sm font-bold text-[var(--brand-900)]">Mulai dari satu aktivitas</p>
+                    <p class="mt-2 text-sm leading-6 text-[var(--text-secondary)]">Dashboard siap menampilkan progres begitu portofolio, dokumen, atau agenda pertama tersedia.</p>
+                    <a href="{{ route('dosen.portfolio.create') }}" class="mt-4 inline-flex text-sm font-bold text-[var(--brand-700)]">Tambah aktivitas pertama -&gt;</a>
                 </div>
             @endif
         </x-slot:aside>
     </x-ui.page-header>
 
-    @if($portfolioCount > 0)
-        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            @foreach($workload as $stat)
-                <x-ui.stat :label="$stat['label']" :value="$stat['value']" :tone="$stat['tone']" />
-            @endforeach
-        </section>
-    @endif
+    <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        @foreach($workload as $stat)
+            <x-ui.stat :label="$stat['label']" :value="$stat['value']" :tone="$stat['tone']" />
+        @endforeach
+    </section>
+
+    <section class="grid gap-4 lg:grid-cols-3">
+        @foreach($readiness as $item)
+            <div class="df-card flex items-center justify-between p-4">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.14em] text-[var(--text-muted)]">{{ $item['label'] }}</p>
+                    <p class="mt-2 text-sm font-semibold text-[var(--text-secondary)]">{{ $item['note'] }}</p>
+                </div>
+                <p class="text-3xl font-black text-[var(--brand-900)]">{{ $item['value'] }}</p>
+            </div>
+        @endforeach
+    </section>
 
     <section class="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
         <x-ui.card class="overflow-hidden p-5 sm:p-6">
@@ -64,7 +80,7 @@
             </x-ui.section-header>
 
             <div class="mt-5 grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
-                <div class="rounded-[var(--radius-lg)] bg-[linear-gradient(135deg,var(--brand-900),var(--brand-700))] p-5 text-white">
+                <div class="rounded-[var(--radius-xl)] bg-[linear-gradient(135deg,var(--brand-900),var(--brand-700))] p-5 text-white shadow-[var(--shadow-floating)]">
                     <p class="text-xs font-bold text-blue-100">Prioritas</p>
                     <p class="mt-4 text-5xl font-bold">{{ $actionTotal }}</p>
                     <p class="mt-2 text-sm font-semibold leading-6 text-blue-50">item membutuhkan perhatian pribadi.</p>
@@ -98,21 +114,21 @@
                         <span class="block font-bold text-[var(--text-primary)]">Portofolio Tridharma</span>
                         <span class="mt-1 block text-sm text-[var(--text-secondary)]">Ringkasan pendidikan, penelitian, pengabdian.</span>
                     </span>
-                    <span class="font-bold text-[var(--brand-700)]">-&gt;</span>
+                    <span class="grid h-9 w-9 place-items-center rounded-full bg-white font-bold text-[var(--brand-700)] ring-1 ring-[var(--border)]">-&gt;</span>
                 </a>
                 <a href="{{ route('profile.show') }}" class="df-card-muted df-interactive flex items-center justify-between p-4">
                     <span>
                         <span class="block font-bold text-[var(--text-primary)]">Profil Akademik</span>
                         <span class="mt-1 block text-sm text-[var(--text-secondary)]">Identitas, pendidikan, karier, dan kepakaran.</span>
                     </span>
-                    <span class="font-bold text-[var(--brand-700)]">-&gt;</span>
+                    <span class="grid h-9 w-9 place-items-center rounded-full bg-white font-bold text-[var(--brand-700)] ring-1 ring-[var(--border)]">-&gt;</span>
                 </a>
                 <a href="{{ route('dosen.documents.index') }}" class="df-card-muted df-interactive flex items-center justify-between p-4">
                     <span>
                         <span class="block font-bold text-[var(--text-primary)]">Dokumen</span>
                         <span class="mt-1 block text-sm text-[var(--text-secondary)]">{{ $documentCount }} dokumen tercatat.</span>
                     </span>
-                    <span class="font-bold text-[var(--brand-700)]">-&gt;</span>
+                    <span class="grid h-9 w-9 place-items-center rounded-full bg-white font-bold text-[var(--brand-700)] ring-1 ring-[var(--border)]">-&gt;</span>
                 </a>
             </div>
         </x-ui.card>

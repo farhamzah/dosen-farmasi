@@ -19,4 +19,10 @@ document.addEventListener('click', (event) => {
     toggle.setAttribute('aria-label', shouldShow ? 'Sembunyikan password' : 'Tampilkan password');
     toggle.querySelector('[data-eye-open]')?.classList.toggle('hidden', shouldShow);
     toggle.querySelector('[data-eye-closed]')?.classList.toggle('hidden', ! shouldShow);
+
+    const label = toggle.querySelector('[data-password-label]');
+
+    if (label) {
+        label.textContent = shouldShow ? 'Sembunyikan' : 'Lihat';
+    }
 });

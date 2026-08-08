@@ -16,9 +16,7 @@
 }
 
 .fi-body {
-    background:
-        radial-gradient(circle at top left, rgba(40, 86, 183, 0.1), transparent 32rem),
-        linear-gradient(180deg, #f7f9fc 0%, #eef3f8 100%);
+    background: linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%);
     font-family: var(--font-family);
 }
 
@@ -30,7 +28,13 @@
 
 .fi-sidebar {
     border-right: 1px solid rgba(219, 227, 238, 0.92);
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 14px 34px rgba(15, 23, 42, 0.06);
+}
+
+.fi-topbar {
+    border-bottom: 1px solid rgba(219, 227, 238, 0.92);
+    background: rgba(255, 255, 255, 0.9);
 }
 
 .fi-logo,
@@ -40,8 +44,8 @@
 }
 
 .fi-sidebar-item-button {
-    min-height: 42px;
-    border-radius: 12px;
+    min-height: 46px;
+    border-radius: 14px;
     font-weight: 800;
 }
 
@@ -52,6 +56,7 @@
 
 .fi-main {
     max-width: 1440px;
+    padding-inline: clamp(1rem, 2.2vw, 2rem);
 }
 
 .fi-section,
@@ -59,14 +64,26 @@
 .fi-ta-ctn,
 .fi-fo-component-ctn {
     border: 1px solid rgba(219, 227, 238, 0.95);
-    border-radius: 18px;
+    border-radius: 22px;
     background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 24px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 14px 34px rgba(15, 23, 42, 0.07);
+}
+
+.fi-wi-stats-overview-stat {
+    overflow: hidden;
+}
+
+.fi-wi-stats-overview-stat::before {
+    content: '';
+    display: block;
+    height: 4px;
+    margin: -1rem -1rem 1rem;
+    background: linear-gradient(90deg, var(--brand-700), #0f766e);
 }
 
 .fi-btn {
-    min-height: 40px;
-    border-radius: 10px;
+    min-height: 42px;
+    border-radius: 12px;
     font-weight: 800;
 }
 
@@ -78,4 +95,40 @@
 .fi-ta-header,
 .fi-ta-row {
     font-size: 0.875rem;
+}
+
+.fi-ta-header-cell {
+    background: #f8fafc;
+    color: #42526e;
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.fi-ta-row {
+    transition: background-color 140ms ease;
+}
+
+.fi-ta-row:hover {
+    background: #f8fafc;
+}
+
+.fi-input-wrp,
+.fi-select-input,
+.fi-ta-search-field {
+    border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+    .fi-main {
+        padding-inline: 0.85rem;
+    }
+
+    .fi-section,
+    .fi-wi-stats-overview-stat,
+    .fi-ta-ctn,
+    .fi-fo-component-ctn {
+        border-radius: 18px;
+    }
 }

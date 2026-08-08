@@ -4,6 +4,9 @@
     $academicPeriod = now()->year.'/'.(now()->year + 1).' - '.(now()->month >= 8 || now()->month <= 1 ? 'Ganjil' : 'Genap');
     $unreadInbox = 0;
     $upcomingAgenda = 0;
+    $availableRoles = array_values(array_filter((array) session('dosen_farmasi.available_roles', $user ? [$user->role] : [])));
+    $canSwitchRole = count($availableRoles) > 1;
+    $roleLabel = $user?->isAdmin() ? 'Admin' : 'Dosen';
 
     if ($user) {
         $lecturerId = (string) $user->core_lecturer_id;
@@ -59,7 +62,7 @@
     </a>
 
     @if($isAuthLayout)
-        <main class="min-h-screen bg-[linear-gradient(135deg,#eef6ff_0%,#f8fbff_42%,#fff8ea_100%)]">
+        <main class="min-h-screen bg-[linear-gradient(135deg,#eef4fb_0%,#fbfcff_48%,#fff8ee_100%)]">
             @yield('content')
         </main>
     @else
@@ -67,22 +70,30 @@
             @auth
                 <aside class="df-sidebar sticky top-0 hidden h-screen shrink-0 flex-col px-4 py-5 lg:flex">
                     <a href="{{ route('dosen.dashboard') }}" class="flex items-center gap-3 rounded-[var(--radius-md)] p-2 transition hover:bg-[var(--brand-50)]">
-                        <img src="{{ asset('images/logo-fakultas-farmasi-ubp.png') }}" alt="Logo Fakultas Farmasi UBP" class="h-11 w-11 rounded-[var(--radius-md)] bg-white object-contain p-1 ring-1 ring-[var(--border)]">
+                        <img src="{{ asset('images/logo-fakultas-farmasi-ubp.png') }}" alt="Logo Fakultas Farmasi UBP" class="h-12 w-12 rounded-[var(--radius-md)] bg-white object-contain p-1.5 shadow-sm ring-1 ring-[var(--border)]">
                         <span>
                             <span class="block text-sm font-bold tracking-normal text-[var(--brand-950)]">Dosen Farmasi</span>
                             <span class="block text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">UBP Karawang</span>
                         </span>
                     </a>
 
-                    <div class="mt-5 px-2">
+                    <div class="mt-5 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[linear-gradient(135deg,#ffffff,#f4f7fb)] p-3 shadow-sm">
                         <div class="flex items-center gap-3">
-                            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--brand-800)] text-sm font-bold text-white">
+                            <div class="grid h-12 w-12 shrink-0 place-items-center rounded-[var(--radius-md)] bg-[var(--brand-900)] text-sm font-bold text-white shadow-sm">
                                 {{ str($user->name)->substr(0, 1) }}
                             </div>
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-[var(--text-primary)]">{{ $user->name }}</p>
                                 <p class="truncate text-xs text-[var(--text-secondary)]">{{ $user->isAdmin() ? 'Administrator Akademik' : 'Program Studi Farmasi' }}</p>
                             </div>
+                        </div>
+                        <div class="mt-3 flex items-center gap-2">
+                            <span class="df-pill min-h-8 flex-1 justify-center bg-white text-[var(--brand-900)]">{{ $roleLabel }}</span>
+                            @if($canSwitchRole)
+                                <a href="{{ route('role.select') }}" class="df-pill min-h-8 justify-center text-[var(--brand-700)] hover:bg-[var(--brand-50)]">
+                                    Ganti
+                                </a>
+                            @endif
                         </div>
                     </div>
 
@@ -125,7 +136,7 @@
                             <img src="{{ asset('images/logo-fakultas-farmasi-ubp.png') }}" alt="Logo Fakultas Farmasi UBP" class="h-10 w-10 shrink-0 rounded-[var(--radius-sm)] bg-white object-contain p-1 ring-1 ring-[var(--border)]">
                             <span class="min-w-0">
                                 <span class="block truncate text-sm font-bold text-[var(--brand-950)]">Dosen Farmasi UBP</span>
-                                <span class="block truncate text-xs text-[var(--text-muted)]">{{ $academicPeriod }}</span>
+                                <span class="block truncate text-xs text-[var(--text-muted)]">{{ $roleLabel }} - {{ $academicPeriod }}</span>
                             </span>
                         </a>
 
@@ -161,6 +172,9 @@
                             </div>
 
                             <div class="flex shrink-0 items-center gap-2">
+                                @if($canSwitchRole)
+                                    <a href="{{ route('role.select') }}" class="hidden df-button df-button-secondary lg:inline-flex">Ganti Peran</a>
+                                @endif
                                 @if($user->isAdmin())
                                     <a href="{{ route('filament.admin.pages.admin-dashboard') }}" class="hidden df-button df-button-primary sm:inline-flex">Ruang Kontrol</a>
                                 @endif
@@ -182,6 +196,11 @@
                 </main>
 
                 @auth
+                    @if($canSwitchRole)
+                        <a href="{{ route('role.select') }}" class="fixed bottom-[5.35rem] right-4 z-40 inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--brand-900)] px-4 text-sm font-bold text-white shadow-[var(--shadow-floating)] lg:hidden">
+                            Ganti Peran
+                        </a>
+                    @endif
                     <x-ui.mobile-bottom-nav :items="$bottomNav" />
                 @endauth
             </div>
