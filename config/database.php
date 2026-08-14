@@ -124,6 +124,26 @@ return [
             ]) : [],
         ],
 
+        'ta_mysql' => [
+            'driver' => 'mysql',
+            'url' => env('TA_DB_URL'),
+            'host' => env('TA_DB_HOST', '127.0.0.1'),
+            'port' => env('TA_DB_PORT', '3306'),
+            'database' => env('TA_DB_DATABASE', 'ta_farmasi'),
+            'username' => env('TA_DB_USERNAME', ''),
+            'password' => env('TA_DB_PASSWORD', ''),
+            'unix_socket' => env('TA_DB_SOCKET', ''),
+            'charset' => env('TA_DB_CHARSET', 'utf8mb4'),
+            'collation' => env('TA_DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('TA_MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         'lab_mysql' => [
             'driver' => 'mysql',
             'url' => env('LAB_DB_URL'),

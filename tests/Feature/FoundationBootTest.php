@@ -103,4 +103,14 @@ class FoundationBootTest extends TestCase
 
         $this->assertDatabaseCount('portfolio_categories', 7);
     }
+
+    public function test_ta_readonly_database_connection_is_configured_for_audit(): void
+    {
+        $connection = config('database.connections.ta_mysql');
+
+        $this->assertIsArray($connection);
+        $this->assertSame('mysql', $connection['driver']);
+        $this->assertSame('ta_farmasi', $connection['database']);
+        $this->assertSame('127.0.0.1', $connection['host']);
+    }
 }
