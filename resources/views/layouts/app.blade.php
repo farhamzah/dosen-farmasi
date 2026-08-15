@@ -79,9 +79,7 @@
 
                     <div class="mt-5 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[linear-gradient(135deg,#ffffff,#f4f7fb)] p-3 shadow-sm">
                         <div class="flex items-center gap-3">
-                            <div class="grid h-12 w-12 shrink-0 place-items-center rounded-[var(--radius-md)] bg-[var(--brand-900)] text-sm font-bold text-white shadow-sm">
-                                {{ str($user->name)->substr(0, 1) }}
-                            </div>
+                            <x-ui.avatar :name="$user->name" :src="$user->photo_url" size="h-12 w-12" class="rounded-[var(--radius-md)] shadow-sm" />
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-[var(--text-primary)]">{{ $user->name }}</p>
                                 <p class="truncate text-xs text-[var(--text-secondary)]">{{ $user->isAdmin() ? 'Administrator Akademik' : 'Program Studi Farmasi' }}</p>
@@ -178,8 +176,8 @@
                                 @if($user->isAdmin())
                                     <a href="{{ route('filament.admin.pages.admin-dashboard') }}" class="hidden df-button df-button-primary sm:inline-flex">Ruang Kontrol</a>
                                 @endif
-                                <a href="{{ route('profile.show') }}" class="grid h-10 w-10 place-items-center rounded-full bg-[var(--brand-800)] text-sm font-bold text-white" aria-label="Buka profil">
-                                    {{ str($user->name)->substr(0, 1) }}
+                                <a href="{{ route('profile.show') }}" aria-label="Buka profil">
+                                    <x-ui.avatar :name="$user->name" :src="$user->photo_url" size="h-10 w-10" />
                                 </a>
                             </div>
                         @endauth

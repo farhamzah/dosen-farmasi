@@ -14,8 +14,8 @@
     <div class="h-1.5 bg-[linear-gradient(90deg,var(--brand-700),var(--research),var(--service))]"></div>
     <div class="grid gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
         <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
-            <div class="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-[var(--radius-xl)] bg-[var(--brand-50)] text-3xl font-bold text-[var(--brand-800)] ring-1 ring-[var(--brand-100)] sm:h-28 sm:w-28">
-                {{ str($user->name)->substr(0, 1) }}
+            <div class="relative">
+                <x-ui.avatar :name="$user->name" :src="$user->photo_url" size="h-24 w-24 sm:h-28 sm:w-28" class="rounded-[var(--radius-xl)] text-3xl ring-[var(--brand-100)]" text-class="text-3xl" />
                 <span class="absolute -bottom-2 -right-2 grid h-8 w-8 place-items-center rounded-full bg-white text-sm font-semibold text-[var(--brand-800)] shadow-sm ring-1 ring-[var(--border)]" aria-label="Foto profil dapat diperbarui">+</span>
             </div>
             <div class="min-w-0">

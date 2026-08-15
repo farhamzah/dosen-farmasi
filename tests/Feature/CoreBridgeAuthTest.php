@@ -25,6 +25,7 @@ class CoreBridgeAuthTest extends TestCase
             $table->string('email')->nullable();
             $table->string('username')->nullable();
             $table->string('identity_number')->nullable();
+            $table->string('profile_photo_path')->nullable();
             $table->boolean('active')->default(true);
             $table->boolean('must_change_password')->default(false);
             $table->string('password');
@@ -36,6 +37,7 @@ class CoreBridgeAuthTest extends TestCase
             $table->string('lecturer_number')->nullable();
             $table->string('name');
             $table->string('email')->nullable();
+            $table->string('profile_photo_url')->nullable();
             $table->string('nip')->nullable();
             $table->string('nidn')->nullable();
             $table->boolean('active')->default(true);
@@ -174,7 +176,24 @@ class CoreBridgeAuthTest extends TestCase
         $this->get(route('role.select'))->assertOk()->assertSee('Admin')->assertSee('Dosen');
     }
 
-    private function seedCoreUser(bool $active = true, string|array $role = 'dosen'): void
+    public function test_core_profile_photo_is_synced_and_rendered(): void
+    {
+        config(['dosen_farmasi.core.asset_base_url' => 'https://core.example.test']);
+        $this->seedCoreUser(photoPath: 'profile-photos/dosen-satu.jpg');
+
+        $this->post('/login', ['login' => 'dosen@example.test', 'password' => 'secret'])
+            ->assertRedirect('/dosen/dashboard');
+
+        $photoUrl = 'https://core.example.test/storage/profile-photos/dosen-satu.jpg';
+        $this->assertDatabaseHas('app_users', ['core_user_id' => '1', 'photo_url' => $photoUrl]);
+        $this->assertDatabaseHas('lecturer_snapshots', ['core_lecturer_id' => '10', 'photo_url' => $photoUrl]);
+        $this->get(route('dosen.dashboard'))
+            ->assertOk()
+            ->assertSee($photoUrl, false)
+            ->assertSee('Foto Dosen Satu', false);
+    }
+
+    private function seedCoreUser(bool $active = true, string|array $role = 'dosen', ?string $photoPath = null): void
     {
         DB::connection('core_testing')->table('users')->insert([
             'id' => 1,
@@ -182,6 +201,7 @@ class CoreBridgeAuthTest extends TestCase
             'email' => 'dosen@example.test',
             'username' => 'dosen.satu',
             'identity_number' => 'ID-001',
+            'profile_photo_path' => $photoPath,
             'active' => $active,
             'must_change_password' => false,
             'password' => Hash::make('secret'),
@@ -193,6 +213,7 @@ class CoreBridgeAuthTest extends TestCase
             'lecturer_number' => 'DSN-001',
             'name' => 'Dosen Satu',
             'email' => 'dosen@example.test',
+            'profile_photo_url' => null,
             'nip' => 'NIP001',
             'nidn' => 'NIDN001',
             'active' => true,

@@ -17,6 +17,7 @@ class AppUser extends Authenticatable implements FilamentUser
         'core_lecturer_id',
         'name',
         'email',
+        'photo_url',
         'lecturer_number',
         'nip',
         'nidn',

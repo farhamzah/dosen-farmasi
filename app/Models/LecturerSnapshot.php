@@ -12,6 +12,7 @@ class LecturerSnapshot extends Model
         'lecturer_number',
         'name',
         'email',
+        'photo_url',
         'nip',
         'nidn',
         'sister_id_sdm',

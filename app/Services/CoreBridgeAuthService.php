@@ -253,6 +253,7 @@ class CoreBridgeAuthService
             'core_lecturer_id' => isset($lecturer['id']) ? (string) $lecturer['id'] : null,
             'name' => (string) ($lecturer['name'] ?? $coreUser['name'] ?? 'Pengguna Core'),
             'email' => (string) ($lecturer['email'] ?? $coreUser['email'] ?? ''),
+            'photo_url' => $this->corePhotoUrl($coreUser, $lecturer),
             'lecturer_number' => isset($lecturer['lecturer_number']) ? (string) $lecturer['lecturer_number'] : null,
             'nip' => isset($lecturer['nip']) ? (string) $lecturer['nip'] : null,
             'nidn' => isset($lecturer['nidn']) ? (string) $lecturer['nidn'] : null,
@@ -280,6 +281,69 @@ class CoreBridgeAuthService
         }
 
         return $user;
+    }
+
+    private function corePhotoUrl(array $coreUser, ?array $lecturer): ?string
+    {
+        $candidateKeys = [
+            'profile_photo_url',
+            'photo_url',
+            'avatar_url',
+            'picture',
+            'profile_photo_path',
+            'photo_path',
+            'avatar_path',
+            'foto',
+            'photo',
+            'avatar',
+        ];
+
+        foreach ([$lecturer ?? [], $coreUser] as $source) {
+            foreach ($candidateKeys as $key) {
+                $url = $this->normalizeCorePhotoUrl($source[$key] ?? null);
+
+                if ($url) {
+                    return $url;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeCorePhotoUrl(mixed $value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (str($value)->startsWith(['http://', 'https://'])) {
+            return $value;
+        }
+
+        if (str($value)->startsWith(['javascript:', 'data:'])) {
+            return null;
+        }
+
+        $baseUrl = trim((string) config('dosen_farmasi.core.asset_base_url', ''), '/');
+
+        if ($baseUrl === '') {
+            return null;
+        }
+
+        if (! str($baseUrl)->startsWith(['http://', 'https://'])) {
+            return null;
+        }
+
+        $path = ltrim($value, '/');
+
+        if (! str($path)->startsWith(['storage/', 'uploads/', 'images/'])) {
+            $path = 'storage/'.$path;
+        }
+
+        return $baseUrl.'/'.$path;
     }
 
     private function coreHasTable(string $table): bool
