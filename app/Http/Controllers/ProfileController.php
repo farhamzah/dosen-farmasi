@@ -145,15 +145,34 @@ class ProfileController extends Controller
         return redirect()->route('profile.show')->with('status', 'Pengaturan visibilitas disimpan.');
     }
 
-    public function publicProfile(string $lecturerCoreId)
+    public function publicProfile(Request $request, string $lecturerCoreId)
     {
         $visibility = ProfileVisibilitySetting::query()
             ->where('lecturer_core_id', $lecturerCoreId)
             ->where('public_profile_enabled', true)
             ->firstOrFail();
 
+        $templates = [
+            'akademik' => [
+                'label' => 'Akademik',
+                'description' => 'Format resmi untuk profil dosen, portofolio, dan kebutuhan institusi.',
+            ],
+            'impact' => [
+                'label' => 'Impact',
+                'description' => 'Tampilan editorial dengan aksen hijau-emas untuk dibagikan ke mitra.',
+            ],
+            'editorial' => [
+                'label' => 'Editorial',
+                'description' => 'Layout ringkas dua kolom untuk CV cepat dan mudah dicetak.',
+            ],
+        ];
+        $selectedTemplate = $request->string('template')->lower()->toString();
+        $selectedTemplate = array_key_exists($selectedTemplate, $templates) ? $selectedTemplate : 'akademik';
+
         return view('profile.public', [
             'visibility' => $visibility,
+            'templates' => $templates,
+            'selectedTemplate' => $selectedTemplate,
             'lecturer' => LecturerSnapshot::query()->where('core_lecturer_id', $lecturerCoreId)->first(),
             'user' => AppUser::query()->where('core_lecturer_id', $lecturerCoreId)->first(),
             'educations' => LecturerEducation::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->orderByDesc('end_year')->get(),

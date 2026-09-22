@@ -225,6 +225,13 @@
 
                     @if($visibilitySetting->public_profile_enabled)
                         <x-ui.button :href="route('profile.public', $user->core_lecturer_id)" variant="secondary" class="w-full">Buka CV Publik</x-ui.button>
+                        <div class="grid grid-cols-3 gap-2">
+                            @foreach(['akademik' => 'Akademik', 'impact' => 'Impact', 'editorial' => 'Editorial'] as $template => $label)
+                                <a href="{{ route('profile.public', ['lecturerCoreId' => $user->core_lecturer_id, 'template' => $template]) }}" class="rounded-[var(--radius-sm)] border border-[var(--border)] bg-white px-2 py-2 text-center text-[11px] font-black text-[var(--brand-800)] hover:bg-[var(--brand-50)]">
+                                    {{ $label }}
+                                </a>
+                            @endforeach
+                        </div>
                     @else
                         <div class="rounded-[var(--radius-md)] border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-950">
                             Aktifkan profil publik agar CV otomatis bisa dibagikan tanpa data sensitif.
@@ -339,6 +346,13 @@
                 @if($visibilitySetting->public_profile_enabled)
                     <div class="mt-5 space-y-3">
                         <x-ui.button :href="route('profile.public', $user->core_lecturer_id)" variant="secondary" class="w-full">Lihat CV Publik</x-ui.button>
+                        <div class="grid grid-cols-3 gap-2">
+                            @foreach(['akademik' => 'Akademik', 'impact' => 'Impact', 'editorial' => 'Editorial'] as $template => $label)
+                                <a href="{{ route('profile.public', ['lecturerCoreId' => $user->core_lecturer_id, 'template' => $template]) }}" class="rounded-[var(--radius-sm)] border border-[var(--border)] bg-white px-2 py-2 text-center text-[11px] font-black text-[var(--brand-800)] hover:bg-[var(--brand-50)]">
+                                    {{ $label }}
+                                </a>
+                            @endforeach
+                        </div>
                         <p class="text-xs leading-5 text-[var(--text-muted)]">Gunakan tombol cetak di halaman publik untuk menyimpan sebagai PDF.</p>
                     </div>
                 @else

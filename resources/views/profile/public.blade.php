@@ -12,26 +12,63 @@
         ['label' => 'Aktivitas', 'count' => $activities->count()],
         ['label' => 'Identitas', 'count' => $identifiers->count()],
     ];
+    $selectedTemplate = $selectedTemplate ?? 'akademik';
+    $templateConfig = [
+        'akademik' => [
+            'page' => 'bg-[linear-gradient(135deg,#eef4fb_0%,#fbfcff_54%,#fff8ee_100%)]',
+            'paper' => 'rounded-[28px] border border-white/80 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.14)]',
+            'hero' => 'bg-[var(--brand-950)] text-white',
+            'side' => 'bg-[var(--surface)]',
+            'accent' => 'text-[var(--brand-700)]',
+            'title' => 'Academic Portfolio Console',
+        ],
+        'impact' => [
+            'page' => 'bg-[radial-gradient(circle_at_88%_3%,#dcebe3,transparent_26%),linear-gradient(135deg,#f8f5ec,#eef6f1)]',
+            'paper' => 'rounded-[30px] border border-emerald-100 bg-[#fffdf8] shadow-[0_30px_90px_rgba(20,83,45,0.14)] [font-family:Georgia,serif]',
+            'hero' => 'bg-[linear-gradient(132deg,#123d30_0%,#1e684d_82%,#d7b86b_82%_86%,#1c6048_86%)] text-white',
+            'side' => 'bg-[#edf4ef]',
+            'accent' => 'text-emerald-800',
+            'title' => 'Lecturer Impact Portfolio',
+        ],
+        'editorial' => [
+            'page' => 'bg-[linear-gradient(135deg,#f8fafc,#f1f5f9)]',
+            'paper' => 'rounded-2xl border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)]',
+            'hero' => 'bg-[linear-gradient(120deg,#ffffff_0%,#ffffff_58%,#eef4fb_58%)] text-[var(--text-primary)]',
+            'side' => 'bg-white',
+            'accent' => 'text-slate-700',
+            'title' => 'Curriculum Vitae Akademik',
+        ],
+    ][$selectedTemplate] ?? [];
+    $isEditorial = $selectedTemplate === 'editorial';
 @endphp
 
 @section('content')
-<div class="min-h-screen bg-[linear-gradient(135deg,#eef4fb_0%,#fbfcff_54%,#fff8ee_100%)] px-4 py-6 sm:px-6 lg:py-10">
+<div class="min-h-screen {{ $templateConfig['page'] }} px-4 py-6 sm:px-6 lg:py-10">
     <div class="mx-auto max-w-6xl">
         <div class="mb-5 flex flex-col gap-3 print:hidden sm:flex-row sm:items-center sm:justify-between">
             <a href="{{ route('login') }}" class="text-sm font-bold text-[var(--brand-800)]">Dosen Farmasi UBP</a>
-            <button type="button" onclick="window.print()" class="df-button df-button-primary sm:w-auto">Cetak / Simpan PDF</button>
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div class="flex flex-wrap gap-2" aria-label="Template CV">
+                    @foreach($templates as $key => $template)
+                        <a href="{{ route('profile.public', ['lecturerCoreId' => $visibility->lecturer_core_id, 'template' => $key]) }}" class="rounded-[var(--radius-sm)] border px-3 py-2 text-xs font-black {{ $selectedTemplate === $key ? 'border-[var(--brand-700)] bg-[var(--brand-800)] text-white' : 'border-[var(--border)] bg-white text-[var(--brand-800)]' }}">
+                            {{ $template['label'] }}
+                        </a>
+                    @endforeach
+                </div>
+                <button type="button" onclick="window.print()" class="df-button df-button-primary sm:w-auto">Cetak / Simpan PDF</button>
+            </div>
         </div>
 
-        <main class="overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.14)] print:rounded-none print:border-0 print:shadow-none">
-            <section class="relative overflow-hidden bg-[var(--brand-950)] px-6 py-8 text-white sm:px-8 lg:px-10">
+        <main class="overflow-hidden {{ $templateConfig['paper'] }} print:rounded-none print:border-0 print:shadow-none">
+            <section class="relative overflow-hidden {{ $templateConfig['hero'] }} px-6 py-8 sm:px-8 lg:px-10">
                 <div class="absolute inset-x-0 top-0 h-1.5 bg-[linear-gradient(90deg,var(--brand-600),var(--research),var(--service))]"></div>
-                <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center">
+                <div class="grid gap-8 {{ $isEditorial ? 'lg:grid-cols-[9rem_minmax(0,1fr)]' : 'lg:grid-cols-[minmax(0,1fr)_22rem]' }} lg:items-center">
                     <div class="flex flex-col gap-6 sm:flex-row sm:items-center">
-                        <x-ui.avatar :name="$displayName" :src="$photoUrl" size="h-28 w-28 sm:h-32 sm:w-32" class="rounded-3xl ring-white/20" text-class="text-4xl" />
+                        <x-ui.avatar :name="$displayName" :src="$photoUrl" size="h-28 w-28 sm:h-32 sm:w-32" class="{{ $isEditorial ? 'rounded-2xl ring-[var(--border)]' : 'rounded-3xl ring-white/20' }}" text-class="text-4xl" />
                         <div class="min-w-0">
-                            <p class="text-xs font-black uppercase tracking-[0.22em] text-white/60">Academic Portfolio Console</p>
-                            <h1 class="mt-3 text-4xl font-black leading-tight sm:text-5xl">{{ $displayName }}</h1>
-                            <p class="mt-3 max-w-2xl text-base font-semibold leading-7 text-white/78">
+                            <p class="text-xs font-black uppercase tracking-[0.22em] {{ $isEditorial ? 'text-[var(--text-muted)]' : 'text-white/60' }}">{{ $templateConfig['title'] }}</p>
+                            <h1 class="mt-3 text-4xl font-black leading-tight sm:text-5xl {{ $selectedTemplate === 'impact' ? 'font-serif' : '' }}">{{ $displayName }}</h1>
+                            <p class="mt-3 max-w-2xl text-base font-semibold leading-7 {{ $isEditorial ? 'text-[var(--text-secondary)]' : 'text-white/78' }}">
                                 {{ $activeFunctional?->position_name ?: 'Dosen Program Studi Farmasi' }}
                                 @if($primaryExpertise)
                                     · {{ $primaryExpertise }}
@@ -39,24 +76,24 @@
                             </p>
                             <div class="mt-5 flex flex-wrap gap-2">
                                 @if($displayEmail)
-                                    <span class="rounded-full bg-white/10 px-3 py-1.5 text-sm font-bold text-white ring-1 ring-white/15">{{ $displayEmail }}</span>
+                                    <span class="rounded-full {{ $isEditorial ? 'bg-white text-[var(--brand-800)] ring-[var(--border)]' : 'bg-white/10 text-white ring-white/15' }} px-3 py-1.5 text-sm font-bold ring-1">{{ $displayEmail }}</span>
                                 @endif
-                                <span class="rounded-full bg-emerald-400/15 px-3 py-1.5 text-sm font-bold text-emerald-100 ring-1 ring-emerald-200/20">Profil publik aman</span>
+                                <span class="rounded-full {{ $isEditorial ? 'bg-emerald-50 text-emerald-800 ring-emerald-100' : 'bg-emerald-400/15 text-emerald-100 ring-emerald-200/20' }} px-3 py-1.5 text-sm font-bold ring-1">Profil publik aman</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rounded-3xl bg-white/10 p-5 ring-1 ring-white/15">
-                        <p class="text-sm font-bold text-white/70">Ringkasan Publik</p>
+                    <div class="{{ $isEditorial ? 'lg:col-start-2' : '' }} rounded-3xl {{ $isEditorial ? 'bg-white p-0 text-[var(--text-primary)]' : 'bg-white/10 p-5 text-white ring-1 ring-white/15' }}">
+                        <p class="text-sm font-bold {{ $isEditorial ? 'text-[var(--text-secondary)]' : 'text-white/70' }}">Ringkasan Publik</p>
                         <div class="mt-4 grid grid-cols-3 gap-2">
                             @foreach($publicSections as $section)
-                                <div class="rounded-2xl bg-white/10 p-3 text-center">
+                                <div class="rounded-2xl {{ $isEditorial ? 'bg-[var(--surface)]' : 'bg-white/10' }} p-3 text-center">
                                     <p class="text-2xl font-black">{{ $section['count'] }}</p>
-                                    <p class="mt-1 text-[11px] font-bold uppercase tracking-wide text-white/60">{{ $section['label'] }}</p>
+                                    <p class="mt-1 text-[11px] font-bold uppercase tracking-wide {{ $isEditorial ? 'text-[var(--text-muted)]' : 'text-white/60' }}">{{ $section['label'] }}</p>
                                 </div>
                             @endforeach
                         </div>
-                        <p class="mt-4 text-xs leading-5 text-white/58">CV ini dihasilkan dari data portofolio dosen-farmasi. Data sensitif tidak ditampilkan.</p>
+                        <p class="mt-4 text-xs leading-5 {{ $isEditorial ? 'text-[var(--text-secondary)]' : 'text-white/58' }}">{{ $templates[$selectedTemplate]['description'] }}</p>
                     </div>
                 </div>
             </section>
@@ -64,7 +101,7 @@
             <section class="grid gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:p-10">
                 <div class="min-w-0 space-y-6">
                     <section class="rounded-3xl border border-[var(--border)] bg-white p-5">
-                        <p class="text-xs font-black uppercase tracking-[0.18em] text-[var(--brand-700)]">Pendidikan</p>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] {{ $templateConfig['accent'] }}">Pendidikan</p>
                         <h2 class="mt-2 text-2xl font-black text-[var(--text-primary)]">Riwayat Akademik</h2>
                         <div class="mt-5 divide-y divide-[var(--border)]">
                             @forelse($educations as $education)
@@ -82,7 +119,7 @@
                     </section>
 
                     <section class="rounded-3xl border border-[var(--border)] bg-white p-5">
-                        <p class="text-xs font-black uppercase tracking-[0.18em] text-[var(--brand-700)]">Portofolio</p>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] {{ $templateConfig['accent'] }}">Portofolio</p>
                         <h2 class="mt-2 text-2xl font-black text-[var(--text-primary)]">Aktivitas Akademik Pilihan</h2>
                         <div class="mt-5 grid gap-3">
                             @forelse($activities as $activity)
@@ -106,8 +143,8 @@
                 </div>
 
                 <aside class="min-w-0 space-y-6">
-                    <section class="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5">
-                        <p class="text-xs font-black uppercase tracking-[0.18em] text-[var(--brand-700)]">Keilmuan</p>
+                    <section class="rounded-3xl border border-[var(--border)] {{ $templateConfig['side'] }} p-5">
+                        <p class="text-xs font-black uppercase tracking-[0.18em] {{ $templateConfig['accent'] }}">Keilmuan</p>
                         <h2 class="mt-2 text-xl font-black text-[var(--text-primary)]">Kepakaran</h2>
                         <div class="mt-4 flex flex-wrap gap-2">
                             @forelse($expertiseAreas as $area)
@@ -121,7 +158,7 @@
                     </section>
 
                     <section class="rounded-3xl border border-[var(--border)] bg-white p-5">
-                        <p class="text-xs font-black uppercase tracking-[0.18em] text-[var(--brand-700)]">Karier</p>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] {{ $templateConfig['accent'] }}">Karier</p>
                         <h2 class="mt-2 text-xl font-black text-[var(--text-primary)]">Jabatan dan Sertifikasi</h2>
                         <div class="mt-4 space-y-3">
                             @forelse($functionalPositions as $position)
@@ -143,7 +180,7 @@
                     </section>
 
                     <section class="rounded-3xl border border-[var(--border)] bg-white p-5">
-                        <p class="text-xs font-black uppercase tracking-[0.18em] text-[var(--brand-700)]">Identitas Ilmiah</p>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] {{ $templateConfig['accent'] }}">Identitas Ilmiah</p>
                         <div class="mt-4 space-y-2">
                             @forelse($identifiers as $identifier)
                                 @if($identifier->profile_url)

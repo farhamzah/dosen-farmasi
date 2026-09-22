@@ -214,8 +214,23 @@ class M8TridharmaProfileTest extends TestCase
         $this->get(route('profile.public', $user->core_lecturer_id))
             ->assertOk()
             ->assertSee('Universitas Publik')
+            ->assertSee('Akademik')
+            ->assertSee('Impact')
+            ->assertSee('Editorial')
+            ->assertSee('Academic Portfolio Console')
+            ->assertDontSee('Lecturer Impact Portfolio')
+            ->assertDontSee('Curriculum Vitae Akademik')
             ->assertDontSee('Sekolah Private')
             ->assertDontSee($user->nip ?? 'NIP-SECRET');
+
+        $this->get(route('profile.public', ['lecturerCoreId' => $user->core_lecturer_id, 'template' => 'impact']))
+            ->assertOk()
+            ->assertSee('Lecturer Impact Portfolio')
+            ->assertDontSee('Academic Portfolio Console');
+
+        $this->get(route('profile.public', ['lecturerCoreId' => $user->core_lecturer_id, 'template' => 'tidak-valid']))
+            ->assertOk()
+            ->assertSee('Academic Portfolio Console');
     }
 
     public function test_admin_can_verify_education_but_dosen_cannot_verify_self(): void
