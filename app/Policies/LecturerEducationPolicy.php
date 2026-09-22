@@ -22,7 +22,7 @@ class LecturerEducationPolicy
         return $this->view($user, $education)
             && $user->isDosen()
             && $education->source_type === 'MANUAL'
-            && in_array($education->verification_status, ['DRAFT', 'REVISION_REQUIRED'], true);
+            && in_array($education->verification_status, ['DRAFT', 'REVISION_REQUIRED', 'ADMIN_VERIFIED', 'VERIFIED'], true);
     }
 
     public function delete(AppUser $user, LecturerEducation $education): bool

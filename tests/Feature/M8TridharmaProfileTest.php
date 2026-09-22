@@ -160,15 +160,15 @@ class M8TridharmaProfileTest extends TestCase
 
         $education = LecturerEducation::query()->firstOrFail();
         $this->assertSame('PUBLIC', $education->visibility);
-        $this->assertSame('DRAFT', $education->verification_status);
+        $this->assertSame('ADMIN_VERIFIED', $education->verification_status);
 
         $this->actingAs($user)
             ->get(route('profile.show'))
             ->assertOk()
-            ->assertSee('Status audit: Belum diverifikasi')
+            ->assertSee('Status: Tercatat')
             ->assertSee('Visibilitas: Public')
             ->assertSee('Edit pendidikan, visibilitas, dan data')
-            ->assertSee('Status audit diverifikasi oleh admin akademik atau sistem integrasi resmi')
+            ->assertSee('Data manual dosen langsung tercatat')
             ->assertSee('Private')
             ->assertSee('Internal')
             ->assertSee('Public')

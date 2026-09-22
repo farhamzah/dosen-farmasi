@@ -5,10 +5,11 @@
 @php
     $statusTone = str_contains((string) $education->verification_status, 'VERIFIED') ? 'success' : (($education->verification_status === 'DRAFT') ? 'info' : 'warning');
     $statusLabels = [
-        'DRAFT' => 'Belum diverifikasi',
+        'DRAFT' => 'Tercatat',
         'SUBMITTED' => 'Diajukan',
-        'ADMIN_VERIFIED' => 'Diverifikasi Admin',
-        'SYSTEM_VERIFIED' => 'Terverifikasi Sistem',
+        'ADMIN_VERIFIED' => 'Tercatat',
+        'SYSTEM_VERIFIED' => 'Tercatat otomatis',
+        'VERIFIED' => 'Tercatat',
         'REVISION_REQUIRED' => 'Perlu Revisi',
         'REJECTED' => 'Ditolak',
     ];
@@ -25,7 +26,7 @@
         <div>
             <div class="flex flex-wrap items-center gap-2">
                 <x-ui.badge tone="brand">{{ $education->level }}</x-ui.badge>
-                <x-ui.badge :tone="$statusTone">Status audit: {{ $statusLabels[$education->verification_status] ?? str($education->verification_status)->replace('_', ' ')->title() }}</x-ui.badge>
+                <x-ui.badge :tone="$statusTone">Status: {{ $statusLabels[$education->verification_status] ?? str($education->verification_status)->replace('_', ' ')->title() }}</x-ui.badge>
                 <x-ui.badge tone="neutral">Visibilitas: {{ $visibilityLabels[$education->visibility] ?? $education->visibility }}</x-ui.badge>
             </div>
             <h3 class="mt-3 text-lg font-black text-[var(--text-primary)]">{{ $education->institution_name }}</h3>
@@ -100,7 +101,7 @@
                     @endforeach
                 </select>
             </label>
-            <p class="text-xs leading-5 text-[var(--text-muted)]">Status audit diverifikasi oleh admin akademik atau sistem integrasi resmi. Dosen dapat mengubah data dan visibilitasnya.</p>
+            <p class="text-xs leading-5 text-[var(--text-muted)]">Data manual dosen langsung tercatat. Data dari integrasi resmi ditandai otomatis oleh sistem.</p>
             <div class="grid gap-2 sm:grid-cols-[1fr_auto]">
                 <button class="df-button df-button-primary">Simpan Perubahan</button>
                 <button type="submit" form="delete-education-{{ $education->id }}" class="df-button df-button-secondary" onclick="return confirm('Hapus riwayat pendidikan ini?')">Hapus</button>

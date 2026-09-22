@@ -52,7 +52,7 @@ class ProfileController extends Controller
             'document_id' => $document?->id,
             'lecturer_core_id' => (string) $request->user()->core_lecturer_id,
             'source_type' => 'MANUAL',
-            'verification_status' => 'DRAFT',
+            'verification_status' => 'ADMIN_VERIFIED',
             'visibility' => ($data['visibility'] ?? null) ?: LecturerEducation::defaultVisibilityForLevel($data['level']),
         ]);
 
@@ -73,6 +73,7 @@ class ProfileController extends Controller
         $education->update([
             ...$data,
             'document_id' => $document?->id,
+            'verification_status' => 'ADMIN_VERIFIED',
             'visibility' => ($data['visibility'] ?? null) ?: LecturerEducation::defaultVisibilityForLevel($data['level']),
         ]);
 
@@ -104,7 +105,7 @@ class ProfileController extends Controller
             [
                 ...$data,
                 'source_type' => 'MANUAL',
-                'verification_status' => 'DRAFT',
+                'verification_status' => 'ADMIN_VERIFIED',
             ],
         );
 

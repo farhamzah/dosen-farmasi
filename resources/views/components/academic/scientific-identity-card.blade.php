@@ -3,6 +3,14 @@
 ])
 
 @php
+    $statusLabels = [
+        'DRAFT' => 'Tercatat',
+        'ADMIN_VERIFIED' => 'Tercatat',
+        'SYSTEM_VERIFIED' => 'Tercatat otomatis',
+        'VERIFIED' => 'Tercatat',
+        'REVISION_REQUIRED' => 'Perlu Revisi',
+        'REJECTED' => 'Ditolak',
+    ];
     $visibilityLabels = [
         'PRIVATE' => 'Private',
         'INTERNAL' => 'Internal',
@@ -16,7 +24,7 @@
             <p class="text-sm font-black text-[var(--text-primary)]">{{ $identifier->identifier_type }}</p>
             <p class="mt-1 truncate text-sm font-semibold text-[var(--text-secondary)]">{{ $identifier->identifier_value }}</p>
         </div>
-        <x-ui.badge :tone="$identifier->verification_status === 'VERIFIED' ? 'success' : 'info'">{{ str($identifier->verification_status)->replace('_', ' ')->title() }}</x-ui.badge>
+        <x-ui.badge :tone="str_contains((string) $identifier->verification_status, 'VERIFIED') ? 'success' : 'info'">{{ $statusLabels[$identifier->verification_status] ?? str($identifier->verification_status)->replace('_', ' ')->title() }}</x-ui.badge>
     </div>
     <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
         <x-ui.badge tone="neutral">{{ $visibilityLabels[$identifier->visibility] ?? $identifier->visibility }}</x-ui.badge>
