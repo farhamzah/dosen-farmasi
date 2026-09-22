@@ -5,7 +5,7 @@
 @php
     $statusTone = str_contains((string) $education->verification_status, 'VERIFIED') ? 'success' : (($education->verification_status === 'DRAFT') ? 'info' : 'warning');
     $statusLabels = [
-        'DRAFT' => 'Draft',
+        'DRAFT' => 'Belum diverifikasi',
         'SUBMITTED' => 'Diajukan',
         'ADMIN_VERIFIED' => 'Diverifikasi Admin',
         'SYSTEM_VERIFIED' => 'Terverifikasi Sistem',
@@ -25,7 +25,7 @@
         <div>
             <div class="flex flex-wrap items-center gap-2">
                 <x-ui.badge tone="brand">{{ $education->level }}</x-ui.badge>
-                <x-ui.badge :tone="$statusTone">Verifikasi: {{ $statusLabels[$education->verification_status] ?? str($education->verification_status)->replace('_', ' ')->title() }}</x-ui.badge>
+                <x-ui.badge :tone="$statusTone">Status audit: {{ $statusLabels[$education->verification_status] ?? str($education->verification_status)->replace('_', ' ')->title() }}</x-ui.badge>
                 <x-ui.badge tone="neutral">Visibilitas: {{ $visibilityLabels[$education->visibility] ?? $education->visibility }}</x-ui.badge>
             </div>
             <h3 class="mt-3 text-lg font-black text-[var(--text-primary)]">{{ $education->institution_name }}</h3>
@@ -100,7 +100,7 @@
                     @endforeach
                 </select>
             </label>
-            <p class="text-xs leading-5 text-[var(--text-muted)]">Status verifikasi tetap mengikuti keputusan admin atau sistem. Dosen dapat mengubah data dan visibilitasnya.</p>
+            <p class="text-xs leading-5 text-[var(--text-muted)]">Status audit diverifikasi oleh admin akademik atau sistem integrasi resmi. Dosen dapat mengubah data dan visibilitasnya.</p>
             <div class="grid gap-2 sm:grid-cols-[1fr_auto]">
                 <button class="df-button df-button-primary">Simpan Perubahan</button>
                 <button type="submit" form="delete-education-{{ $education->id }}" class="df-button df-button-secondary" onclick="return confirm('Hapus riwayat pendidikan ini?')">Hapus</button>
