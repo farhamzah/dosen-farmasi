@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppUser;
 use App\Models\Document;
 use App\Models\LecturerCertification;
 use App\Models\LecturerEducation;
 use App\Models\LecturerExpertiseArea;
 use App\Models\LecturerExternalIdentifier;
 use App\Models\LecturerFunctionalPosition;
+use App\Models\LecturerSnapshot;
 use App\Models\LecturerStructuralPosition;
 use App\Models\PortfolioActivity;
 use App\Models\ProfileVisibilitySetting;
@@ -152,9 +154,21 @@ class ProfileController extends Controller
 
         return view('profile.public', [
             'visibility' => $visibility,
+            'lecturer' => LecturerSnapshot::query()->where('core_lecturer_id', $lecturerCoreId)->first(),
+            'user' => AppUser::query()->where('core_lecturer_id', $lecturerCoreId)->first(),
             'educations' => LecturerEducation::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->orderByDesc('end_year')->get(),
+            'functionalPositions' => LecturerFunctionalPosition::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->orderByDesc('is_active')->orderByDesc('effective_date')->get(),
+            'structuralPositions' => LecturerStructuralPosition::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->orderByDesc('is_active')->orderByDesc('start_date')->get(),
+            'certifications' => LecturerCertification::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->orderByDesc('issued_at')->get(),
             'expertiseAreas' => LecturerExpertiseArea::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->get(),
             'identifiers' => LecturerExternalIdentifier::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->get(),
+            'activities' => PortfolioActivity::query()->with('category')
+                ->where('lecturer_core_id', $lecturerCoreId)
+                ->where('visibility', 'PUBLIC')
+                ->latest('start_date')
+                ->latest()
+                ->limit(12)
+                ->get(),
         ]);
     }
 

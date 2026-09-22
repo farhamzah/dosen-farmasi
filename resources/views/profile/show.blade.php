@@ -201,6 +201,41 @@
         </div>
 
         <aside class="min-w-0 space-y-5">
+            <x-ui.card class="overflow-hidden">
+                <div class="bg-[radial-gradient(circle_at_85%_10%,rgba(45,212,191,0.28),transparent_28%),linear-gradient(135deg,var(--brand-950),#123f66)] p-5 text-white">
+                    <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-white/65">CV dan Portofolio</p>
+                    <h2 class="mt-2 text-xl font-black leading-tight">Sumber otomatis profil akademik</h2>
+                    <p class="mt-2 text-sm leading-6 text-white/75">Saat ada kebutuhan CV, portofolio, atau profil dosen, data terkurasi akan diambil dari halaman ini.</p>
+                </div>
+                <div class="space-y-4 p-5">
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="rounded-[var(--radius-sm)] bg-[var(--brand-50)] p-3">
+                            <p class="text-lg font-black text-[var(--brand-900)]">{{ $educations->count() }}</p>
+                            <p class="mt-1 text-[11px] font-bold text-[var(--text-muted)]">Pendidikan</p>
+                        </div>
+                        <div class="rounded-[var(--radius-sm)] bg-[var(--research-soft)] p-3">
+                            <p class="text-lg font-black text-teal-800">{{ $recentAcademicActivities->count() }}</p>
+                            <p class="mt-1 text-[11px] font-bold text-[var(--text-muted)]">Aktivitas</p>
+                        </div>
+                        <div class="rounded-[var(--radius-sm)] bg-[var(--service-soft)] p-3">
+                            <p class="text-lg font-black text-amber-800">{{ $identifiers->count() }}</p>
+                            <p class="mt-1 text-[11px] font-bold text-[var(--text-muted)]">ID Ilmiah</p>
+                        </div>
+                    </div>
+
+                    @if($visibilitySetting->public_profile_enabled)
+                        <x-ui.button :href="route('profile.public', $user->core_lecturer_id)" variant="secondary" class="w-full">Buka CV Publik</x-ui.button>
+                    @else
+                        <div class="rounded-[var(--radius-md)] border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-950">
+                            Aktifkan profil publik agar CV otomatis bisa dibagikan tanpa data sensitif.
+                        </div>
+                    @endif
+
+                    <a href="#visibilitas" class="df-button df-button-primary w-full">Atur Data yang Tampil</a>
+                    <p class="text-xs leading-5 text-[var(--text-muted)]">NIK, alamat rumah, nomor HP pribadi, nomor dokumen, dan file bukti tidak ikut tampil di CV publik.</p>
+                </div>
+            </x-ui.card>
+
             <x-academic.profile-completeness :completeness="$completeness" />
 
             <x-ui.card id="visibilitas" class="p-5">
@@ -300,9 +335,12 @@
             </x-ui.card>
 
             <x-ui.card id="profil-publik" class="p-5">
-                <x-ui.section-header title="Profil Publik" description="Bagian public dapat dibagikan tanpa membuka data sensitif." />
+                <x-ui.section-header title="Profil Publik" description="CV live yang dapat dibagikan tanpa membuka data sensitif." />
                 @if($visibilitySetting->public_profile_enabled)
-                    <x-ui.button :href="route('profile.public', $user->core_lecturer_id)" variant="secondary" class="mt-5 w-full">Lihat Profil Publik</x-ui.button>
+                    <div class="mt-5 space-y-3">
+                        <x-ui.button :href="route('profile.public', $user->core_lecturer_id)" variant="secondary" class="w-full">Lihat CV Publik</x-ui.button>
+                        <p class="text-xs leading-5 text-[var(--text-muted)]">Gunakan tombol cetak di halaman publik untuk menyimpan sebagai PDF.</p>
+                    </div>
                 @else
                     <x-ui.empty-state class="mt-5" title="Profil publik belum aktif" description="Aktifkan visibilitas publik sebelum profil dibagikan." />
                 @endif
