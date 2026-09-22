@@ -96,12 +96,9 @@
                 @if($basicEducations->isNotEmpty())
                     <details class="mt-6 rounded-[var(--radius-md)] border border-[var(--border)] bg-white p-4">
                         <summary class="cursor-pointer text-sm font-black text-[var(--text-primary)]">Pendidikan Dasar dan Menengah</summary>
-                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                        <div class="mt-4 space-y-3 border-l border-[var(--border)] pl-8">
                             @foreach($basicEducations as $education)
-                                <div class="rounded-[var(--radius-sm)] bg-[var(--surface-muted)] p-3">
-                                    <p class="font-black text-[var(--text-primary)]">{{ $education->level }} · {{ $education->institution_name }}</p>
-                                    <p class="mt-1 text-sm text-[var(--text-secondary)]">{{ $education->end_year ?: 'Tahun belum diisi' }}</p>
-                                </div>
+                                <x-academic.education-timeline-item :education="$education" />
                             @endforeach
                         </div>
                     </details>

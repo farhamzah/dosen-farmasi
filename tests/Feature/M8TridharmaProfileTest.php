@@ -141,6 +141,40 @@ class M8TridharmaProfileTest extends TestCase
         $this->assertSoftDeleted($education);
     }
 
+    public function test_education_create_and_edit_controls_keep_visibility_clear(): void
+    {
+        $user = $this->dosen();
+
+        $this->actingAs($user)
+            ->post(route('profile.educations.store'), [
+                'level' => 'S2',
+                'institution_name' => 'Universitas Raharia',
+                'study_program' => 'Teknik Informatika',
+                'degree' => 'M.T.I',
+                'start_year' => 2015,
+                'end_year' => 2018,
+                'graduation_status' => 'LULUS',
+                'visibility' => 'PUBLIC',
+            ])
+            ->assertRedirect(route('profile.show'));
+
+        $education = LecturerEducation::query()->firstOrFail();
+        $this->assertSame('PUBLIC', $education->visibility);
+        $this->assertSame('DRAFT', $education->verification_status);
+
+        $this->actingAs($user)
+            ->get(route('profile.show'))
+            ->assertOk()
+            ->assertSee('Verifikasi: Draft')
+            ->assertSee('Visibilitas: Public')
+            ->assertSee('Edit pendidikan, visibilitas, dan data')
+            ->assertSee('Private')
+            ->assertSee('Internal')
+            ->assertSee('Public')
+            ->assertSee('Simpan Perubahan')
+            ->assertSee('Hapus');
+    }
+
     public function test_other_lecturer_education_is_denied(): void
     {
         $owner = $this->dosen();
