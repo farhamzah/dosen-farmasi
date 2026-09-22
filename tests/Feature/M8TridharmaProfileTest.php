@@ -288,6 +288,78 @@ class M8TridharmaProfileTest extends TestCase
             ->assertDontSee('SRC-TECHNICAL-999');
     }
 
+    public function test_scientific_identifier_crud_keeps_visibility_editable(): void
+    {
+        $user = $this->dosen();
+
+        $this->actingAs($user)
+            ->post(route('profile.identifiers.store'), [
+                'identifier_type' => 'SINTA',
+                'identifier_value' => '6719210',
+                'profile_url' => 'https://sinta.kemdikbud.go.id/authors/profile/6719210',
+                'visibility' => 'PRIVATE',
+            ])
+            ->assertRedirect(route('profile.show'));
+
+        $identifier = LecturerExternalIdentifier::query()->firstOrFail();
+        $this->assertSame('PRIVATE', $identifier->visibility);
+
+        $this->actingAs($user)
+            ->get(route('profile.show'))
+            ->assertOk()
+            ->assertSee('Edit visibilitas dan data')
+            ->assertSee('Private')
+            ->assertSee('Internal')
+            ->assertSee('Public');
+
+        $this->actingAs($user)
+            ->put(route('profile.identifiers.update', $identifier), [
+                'identifier_type' => 'SINTA',
+                'identifier_value' => '6719210-UPDATED',
+                'profile_url' => 'https://sinta.kemdikbud.go.id/authors/profile/6719210',
+                'visibility' => 'PUBLIC',
+            ])
+            ->assertRedirect(route('profile.show'));
+
+        $this->assertDatabaseHas('lecturer_external_identifiers', [
+            'id' => $identifier->id,
+            'identifier_value' => '6719210-UPDATED',
+            'visibility' => 'PUBLIC',
+        ]);
+
+        $this->actingAs($user)
+            ->delete(route('profile.identifiers.destroy', $identifier))
+            ->assertRedirect(route('profile.show'));
+
+        $this->assertSoftDeleted($identifier);
+    }
+
+    public function test_other_lecturer_scientific_identifier_is_denied(): void
+    {
+        $owner = $this->dosen();
+        $other = $this->dosen('2', '20', 'Dosen Lain');
+        $identifier = LecturerExternalIdentifier::query()->create([
+            'lecturer_core_id' => $owner->core_lecturer_id,
+            'identifier_type' => 'ORCID',
+            'identifier_value' => '0000-0002-0000-0000',
+            'verification_status' => 'DRAFT',
+            'visibility' => 'INTERNAL',
+            'source_type' => 'MANUAL',
+        ]);
+
+        $this->actingAs($other)
+            ->put(route('profile.identifiers.update', $identifier), [
+                'identifier_type' => 'ORCID',
+                'identifier_value' => '0000-0002-0000-0001',
+                'visibility' => 'PUBLIC',
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($other)
+            ->delete(route('profile.identifiers.destroy', $identifier))
+            ->assertForbidden();
+    }
+
     public function test_admin_academic_resources_load(): void
     {
         $admin = AppUser::query()->create(['core_user_id' => '9', 'name' => 'Admin', 'role' => 'admin', 'is_active' => true]);

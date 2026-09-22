@@ -94,16 +94,7 @@ class ProfileController extends Controller
 
     public function storeIdentifier(Request $request)
     {
-        $data = $request->validate([
-            'identifier_type' => ['required', Rule::in(LecturerExternalIdentifier::TYPES)],
-            'identifier_value' => ['required', 'string', 'max:255'],
-            'profile_url' => ['nullable', 'url', 'max:1000', function (string $attribute, mixed $value, \Closure $fail): void {
-                if (preg_match('/^\s*javascript:/i', (string) $value)) {
-                    $fail('URL profil tidak aman.');
-                }
-            }],
-            'visibility' => ['required', 'in:PRIVATE,INTERNAL,PUBLIC'],
-        ]);
+        $data = $this->identifierData($request);
 
         LecturerExternalIdentifier::query()->updateOrCreate(
             [
@@ -118,6 +109,29 @@ class ProfileController extends Controller
         );
 
         return redirect()->route('profile.show')->with('status', 'Identitas ilmiah diperbarui.');
+    }
+
+    public function updateIdentifier(Request $request, LecturerExternalIdentifier $identifier)
+    {
+        $this->ownedIdentifier($request, $identifier);
+
+        $data = $this->identifierData($request);
+
+        $identifier->update([
+            ...$data,
+            'source_type' => 'MANUAL',
+        ]);
+
+        return redirect()->route('profile.show')->with('status', 'Identitas ilmiah diperbarui.');
+    }
+
+    public function destroyIdentifier(Request $request, LecturerExternalIdentifier $identifier)
+    {
+        $this->ownedIdentifier($request, $identifier);
+
+        $identifier->delete();
+
+        return redirect()->route('profile.show')->with('status', 'Identitas ilmiah dihapus.');
     }
 
     public function updateVisibility(Request $request)
@@ -210,6 +224,27 @@ class ProfileController extends Controller
             'visibility' => ['nullable', 'in:PRIVATE,INTERNAL,PUBLIC'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ]);
+    }
+
+    private function identifierData(Request $request): array
+    {
+        return $request->validate([
+            'identifier_type' => ['required', Rule::in(LecturerExternalIdentifier::TYPES)],
+            'identifier_value' => ['required', 'string', 'max:255'],
+            'profile_url' => ['nullable', 'url', 'max:1000', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (preg_match('/^\s*javascript:/i', (string) $value)) {
+                    $fail('URL profil tidak aman.');
+                }
+            }],
+            'visibility' => ['required', 'in:PRIVATE,INTERNAL,PUBLIC'],
+        ]);
+    }
+
+    private function ownedIdentifier(Request $request, LecturerExternalIdentifier $identifier): LecturerExternalIdentifier
+    {
+        abort_unless((string) $identifier->lecturer_core_id === (string) $request->user()->core_lecturer_id, 403);
+
+        return $identifier;
     }
 
     private function ownedDocument(Request $request, mixed $documentId): ?Document

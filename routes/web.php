@@ -79,6 +79,8 @@ Route::middleware(['auth', 'dosen.role:dosen,admin'])->group(function (): void {
     Route::put('/profil/pendidikan/{education}', [ProfileController::class, 'updateEducation'])->name('profile.educations.update');
     Route::delete('/profil/pendidikan/{education}', [ProfileController::class, 'destroyEducation'])->name('profile.educations.destroy');
     Route::post('/profil/identitas-ilmiah', [ProfileController::class, 'storeIdentifier'])->name('profile.identifiers.store');
+    Route::put('/profil/identitas-ilmiah/{identifier}', [ProfileController::class, 'updateIdentifier'])->name('profile.identifiers.update');
+    Route::delete('/profil/identitas-ilmiah/{identifier}', [ProfileController::class, 'destroyIdentifier'])->name('profile.identifiers.destroy');
     Route::post('/profil/visibilitas', [ProfileController::class, 'updateVisibility'])->name('profile.visibility.update');
 });
 

@@ -269,7 +269,7 @@
             </x-ui.card>
 
             <x-ui.card id="identitas-ilmiah" class="p-5">
-                <x-ui.section-header title="Identitas Ilmiah" description="Akun akademik yang terhubung dengan profil Anda." />
+                <x-ui.section-header title="Identitas Ilmiah" description="Akun akademik yang terhubung dengan profil, CV, dan portofolio otomatis Anda." />
                 <div class="mt-5 space-y-3">
                     @forelse($identifiers as $identifier)
                         <x-academic.scientific-identity-card :identifier="$identifier" />
@@ -277,20 +277,37 @@
                         <x-ui.empty-state title="Hubungkan identitas ilmiah" description="Tambahkan SINTA, ORCID, Scopus, Google Scholar, atau identitas lain yang relevan." />
                     @endforelse
                 </div>
-                <form method="post" action="{{ route('profile.identifiers.store') }}" class="mt-5 space-y-3">
+                <form method="post" action="{{ route('profile.identifiers.store') }}" class="mt-5 space-y-4 rounded-[var(--radius-md)] border border-dashed border-[var(--border)] bg-[var(--surface-muted)]/70 p-4">
                     @csrf
-                    <select name="identifier_type" class="df-field" required>
-                        @foreach($identifierTypes as $type)
-                            <option value="{{ $type }}">{{ $type }}</option>
-                        @endforeach
-                    </select>
-                    <input name="identifier_value" class="df-field" placeholder="ID atau username" required>
-                    <input name="profile_url" class="df-field" placeholder="https://...">
-                    <select name="visibility" class="df-field">
-                        <option value="INTERNAL">Internal</option>
-                        <option value="PUBLIC">Public</option>
-                        <option value="PRIVATE">Private</option>
-                    </select>
+                    <div>
+                        <p class="text-sm font-black text-[var(--text-primary)]">Tambah identitas baru</p>
+                        <p class="mt-1 text-xs leading-5 text-[var(--text-muted)]">Jika jenis yang sama sudah ada, data akan diperbarui agar profil tetap rapi.</p>
+                    </div>
+                    <label class="block text-xs font-black uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                        Jenis identitas
+                        <select name="identifier_type" class="df-field mt-2" required>
+                            @foreach($identifierTypes as $type)
+                                <option value="{{ $type }}">{{ $type }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <label class="block text-xs font-black uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                        ID atau username
+                        <input name="identifier_value" class="df-field mt-2" placeholder="Contoh: 6719210" required>
+                    </label>
+                    <label class="block text-xs font-black uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                        URL profil
+                        <input name="profile_url" class="df-field mt-2" placeholder="https://...">
+                    </label>
+                    <label class="block text-xs font-black uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                        Visibilitas
+                        <select name="visibility" class="df-field mt-2" required>
+                            <option value="PRIVATE">Private</option>
+                            <option value="INTERNAL">Internal</option>
+                            <option value="PUBLIC">Public</option>
+                        </select>
+                    </label>
+                    <p class="text-xs leading-5 text-[var(--text-muted)]">Private hanya untuk Anda dan admin, Internal untuk kebutuhan sistem kampus, Public tampil di CV publik.</p>
                     <button class="df-button df-button-secondary w-full">Simpan Identitas</button>
                 </form>
             </x-ui.card>
