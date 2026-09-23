@@ -1,5 +1,22 @@
 import './bootstrap';
 
+const openHashDetails = () => {
+    const target = document.getElementById(decodeURIComponent(window.location.hash.slice(1)));
+
+    if (target?.matches('details')) {
+        target.open = true;
+    }
+};
+
+window.addEventListener('hashchange', openHashDetails);
+openHashDetails();
+
+document.addEventListener('click', (event) => {
+    if (event.target.closest('a[href="#tambah-pendidikan"]')) {
+        document.getElementById('tambah-pendidikan')?.setAttribute('open', '');
+    }
+});
+
 document.addEventListener('click', (event) => {
     const toggle = event.target.closest('[data-password-toggle]');
 

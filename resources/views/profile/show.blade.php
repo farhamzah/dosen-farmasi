@@ -13,7 +13,7 @@
 @endphp
 
 @section('content')
-<div class="space-y-6">
+<div class="df-profile-page space-y-5">
     <x-academic.academic-profile-header
         :user="$user"
         :completeness="$completeness"
@@ -21,7 +21,23 @@
         :expertise-areas="$expertiseAreas"
     />
 
-    <nav class="df-segmented" aria-label="Navigasi Profil Akademik">
+    <div class="df-profile-toolbar">
+        <div class="min-w-0">
+            <p class="text-sm font-bold text-[var(--text-primary)]">Data akademik Anda</p>
+            <p class="text-xs text-[var(--text-secondary)]">Pendidikan, karier, kepakaran, dan identitas ilmiah dalam satu profil.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="#tambah-pendidikan" class="df-button df-button-secondary">Tambah pendidikan</a>
+            <a href="#visibilitas" class="df-button df-button-secondary">Atur visibilitas</a>
+            @if($visibilitySetting->public_profile_enabled)
+                <a href="{{ route('profile.public', $user->core_lecturer_id) }}" class="df-button df-button-primary">Lihat CV publik</a>
+            @else
+                <a href="#profil-publik" class="df-button df-button-primary">Siapkan CV publik</a>
+            @endif
+        </div>
+    </div>
+
+    <nav class="df-segmented df-profile-nav" aria-label="Navigasi Profil Akademik">
         @foreach([
             'ringkasan' => 'Ringkasan',
             'pendidikan' => 'Pendidikan',
@@ -30,34 +46,36 @@
             'identitas-ilmiah' => 'Identitas Ilmiah',
             'visibilitas' => 'Visibilitas',
         ] as $anchor => $label)
-            <a href="#{{ $anchor }}" class="shrink-0 rounded-[var(--radius-sm)] px-4 py-2.5 text-sm font-extrabold text-[var(--text-secondary)] hover:bg-white">{{ $label }}</a>
+            <a href="#{{ $anchor }}" class="shrink-0 rounded-[var(--radius-sm)] px-4 py-2.5 text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--brand-50)] hover:text-[var(--brand-800)]">{{ $label }}</a>
         @endforeach
     </nav>
 
-    <section id="ringkasan" class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
+    <section id="ringkasan" class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div class="min-w-0 space-y-6">
-            <x-ui.card class="p-5 sm:p-6">
-                <x-ui.section-header
-                    eyebrow="Identitas"
-                    title="Tentang Dosen"
-                    description="Profil ini menggabungkan identitas Core Farmasi dan data akademik yang Anda kelola sendiri."
-                />
-                <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    <x-ui.stat label="Status" :value="$user->is_active ? 'Aktif' : 'Nonaktif'" tone="success" />
-                    <x-ui.stat label="Jabatan" :value="$activeFunctional?->position_name ?: '-'" caption="Fungsional aktif" />
-                    <x-ui.stat label="Email" :value="$user->email ?: '-'" caption="Institusi" />
-                    <x-ui.stat label="Profil" :value="$completeness['percent'].'%'" caption="Kelengkapan" tone="info" />
+            <div class="df-profile-summary">
+                <div class="df-profile-summary-heading">
+                    <div>
+                        <p class="df-profile-eyebrow">Ringkasan</p>
+                        <h2 class="text-xl font-bold text-[var(--text-primary)]">Sekilas profil</h2>
+                    </div>
+                    <a href="#pendidikan" class="text-sm font-semibold text-[var(--brand-700)] hover:underline">Lihat riwayat pendidikan</a>
                 </div>
-            </x-ui.card>
+                <dl class="df-profile-facts">
+                    <div><dt>Pendidikan tinggi</dt><dd>{{ $higherEducations->count() }} riwayat</dd></div>
+                    <div><dt>Jabatan fungsional</dt><dd>{{ $activeFunctional?->position_name ?: 'Belum tercatat' }}</dd></div>
+                    <div><dt>Bidang utama</dt><dd>{{ $expertiseAreas->first()?->primary_expertise ?: 'Belum diisi' }}</dd></div>
+                    <div><dt>Identitas ilmiah</dt><dd>{{ $identifiers->count() }} terhubung</dd></div>
+                </dl>
+            </div>
 
             <x-ui.card id="pendidikan" class="p-5 sm:p-6">
                 <x-ui.section-header
-                    eyebrow="Journey"
+                    eyebrow="Pendidikan"
                     title="Riwayat Pendidikan"
-                    description="Jenjang pendidikan tinggi ditampilkan sebagai milestone utama, sementara pendidikan dasar tetap tersimpan secara aman."
+                    description="Riwayat pendidikan tinggi dan gelar Anda. Pilih riwayat untuk mengubah data atau visibilitas."
                 >
                     <x-slot:actions>
-                        <a href="#tambah-pendidikan" class="df-button df-button-secondary">Tambah Pendidikan</a>
+                        <a href="#tambah-pendidikan" class="df-button df-button-secondary">Tambah pendidikan</a>
                     </x-slot:actions>
                 </x-ui.section-header>
 
@@ -83,7 +101,7 @@
                     @else
                         <x-ui.empty-state
                             title="Mulai bangun perjalanan akademik Anda"
-                            description="Tambahkan pendidikan tinggi terakhir terlebih dahulu agar profil akademik lebih siap diverifikasi."
+                            description="Tambahkan pendidikan tinggi terakhir agar riwayat akademik Anda mudah dilihat."
                             icon="book"
                         >
                             <x-slot:actions>
@@ -103,6 +121,41 @@
                         </div>
                     </details>
                 @endif
+
+                <details id="tambah-pendidikan" class="df-profile-add-form mt-6">
+                    <summary>Tambah riwayat pendidikan <span aria-hidden="true">+</span></summary>
+                    <form method="post" action="{{ route('profile.educations.store') }}" class="mt-5 grid gap-4 sm:grid-cols-2">
+                        @csrf
+                        <label class="df-profile-form-label">Jenjang
+                            <select name="level" class="df-field mt-1" required>@foreach($levels as $level)<option value="{{ $level }}">{{ $level }}</option>@endforeach</select>
+                        </label>
+                        <label class="df-profile-form-label">Nama institusi
+                            <input name="institution_name" class="df-field mt-1" required>
+                        </label>
+                        <label class="df-profile-form-label">Program studi
+                            <input name="study_program" class="df-field mt-1">
+                        </label>
+                        <label class="df-profile-form-label">Gelar
+                            <input name="degree" class="df-field mt-1">
+                        </label>
+                        <label class="df-profile-form-label">Tahun mulai
+                            <input name="start_year" type="number" class="df-field mt-1">
+                        </label>
+                        <label class="df-profile-form-label">Tahun lulus
+                            <input name="end_year" type="number" class="df-field mt-1">
+                        </label>
+                        <label class="df-profile-form-label">Status kelulusan
+                            <select name="graduation_status" class="df-field mt-1"><option value="LULUS">Lulus</option><option value="BERJALAN">Berjalan</option><option value="TIDAK_SELESAI">Tidak selesai</option></select>
+                        </label>
+                        <label class="df-profile-form-label">Visibilitas
+                            <select name="visibility" class="df-field mt-1"><option value="">Default aman</option><option value="PRIVATE">Private</option><option value="INTERNAL">Internal</option><option value="PUBLIC">Public</option></select>
+                        </label>
+                        <label class="df-profile-form-label sm:col-span-2">Judul tugas akhir, tesis, atau disertasi
+                            <textarea name="thesis_title" class="df-field mt-1 min-h-24" rows="3"></textarea>
+                        </label>
+                        <div class="sm:col-span-2"><button class="df-button df-button-primary">Simpan pendidikan</button></div>
+                    </form>
+                </details>
             </x-ui.card>
 
             <x-ui.card id="karier" class="p-5 sm:p-6">
@@ -113,14 +166,14 @@
                 />
 
                 <div class="mt-5 rounded-[var(--radius-lg)] bg-[linear-gradient(135deg,var(--brand-50),white)] p-5 ring-1 ring-[var(--border)]">
-                    <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--brand-700)]">Jabatan Fungsional Aktif</p>
+                    <p class="text-xs font-bold uppercase text-[var(--brand-700)]">Jabatan Fungsional Aktif</p>
                     <h3 class="mt-2 text-2xl font-black text-[var(--text-primary)]">{{ $activeFunctional?->position_name ?: 'Belum dicatat' }}</h3>
                     <p class="mt-2 text-sm font-semibold text-[var(--text-secondary)]">TMT {{ optional($activeFunctional?->effective_date)->format('d M Y') ?: 'belum diisi' }} · KUM {{ $activeFunctional?->credit_score ?: '-' }}</p>
                 </div>
 
                 <div class="mt-5 grid gap-4 lg:grid-cols-2">
                     <div>
-                        <p class="mb-4 text-sm font-black text-[var(--text-primary)]">Progression</p>
+                        <p class="mb-4 text-sm font-bold text-[var(--text-primary)]">Jenjang jabatan</p>
                         <div class="grid gap-2 sm:grid-cols-4 lg:grid-cols-2">
                             @foreach($careerStages as $stage)
                                 @php($reached = $functionalPositions->contains(fn ($position) => str($position->position_name)->contains($stage, true)))
@@ -167,7 +220,7 @@
                 <x-ui.section-header
                     eyebrow="Keilmuan"
                     title="Bidang Kepakaran"
-                    description="Bidang utama, spesialisasi, dan topik riset divisualkan sebagai research fingerprint."
+                    description="Bidang utama, spesialisasi, dan topik riset yang menggambarkan kepakaran Anda."
                 />
                 <div class="mt-5 space-y-5">
                     @forelse($expertiseAreas as $area)
@@ -199,10 +252,10 @@
 
         <aside class="min-w-0 space-y-5">
             <x-ui.card class="overflow-hidden">
-                <div class="bg-[radial-gradient(circle_at_85%_10%,rgba(45,212,191,0.28),transparent_28%),linear-gradient(135deg,var(--brand-950),#123f66)] p-5 text-white">
-                    <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-white/65">CV dan Portofolio</p>
-                    <h2 class="mt-2 text-xl font-black leading-tight">Sumber otomatis profil akademik</h2>
-                    <p class="mt-2 text-sm leading-6 text-white/75">Saat ada kebutuhan CV, portofolio, atau profil dosen, data terkurasi akan diambil dari halaman ini.</p>
+                <div class="border-b border-[var(--border)] p-5">
+                    <p class="df-profile-eyebrow">CV dan Portofolio</p>
+                    <h2 class="mt-1 text-lg font-bold text-[var(--text-primary)]">Tampilan profil publik</h2>
+                    <p class="mt-1 text-sm leading-6 text-[var(--text-secondary)]">Lihat informasi yang dapat dibagikan dari profil Anda.</p>
                 </div>
                 <div class="space-y-4 p-5">
                     <div class="grid grid-cols-3 gap-2 text-center">
@@ -321,38 +374,6 @@
                         <x-ui.empty-state title="Belum ada sertifikasi" description="Sertifikasi profesi dan akademik akan tampil setelah dicatat." />
                     @endforelse
                 </div>
-            </x-ui.card>
-
-            <x-ui.card id="tambah-pendidikan" class="p-5">
-                <x-ui.section-header title="Tambah Pendidikan" description="Data manual masuk sebagai draft dan tetap mengikuti visibilitas aman." />
-                <form method="post" action="{{ route('profile.educations.store') }}" class="mt-5 space-y-3">
-                    @csrf
-                    <select name="level" class="df-field" required>
-                        @foreach($levels as $level)
-                            <option value="{{ $level }}">{{ $level }}</option>
-                        @endforeach
-                    </select>
-                    <input name="institution_name" class="df-field" placeholder="Nama institusi" required>
-                    <input name="study_program" class="df-field" placeholder="Program studi">
-                    <input name="degree" class="df-field" placeholder="Gelar">
-                    <div class="grid grid-cols-2 gap-3">
-                        <input name="start_year" type="number" class="df-field" placeholder="Mulai">
-                        <input name="end_year" type="number" class="df-field" placeholder="Lulus">
-                    </div>
-                    <select name="graduation_status" class="df-field">
-                        <option value="LULUS">Lulus</option>
-                        <option value="BERJALAN">Berjalan</option>
-                        <option value="TIDAK_SELESAI">Tidak selesai</option>
-                    </select>
-                    <textarea name="thesis_title" class="df-field min-h-28" rows="3" placeholder="Judul tugas akhir/tesis/disertasi"></textarea>
-                    <select name="visibility" class="df-field">
-                        <option value="">Default aman</option>
-                        <option value="PRIVATE">Private</option>
-                        <option value="INTERNAL">Internal</option>
-                        <option value="PUBLIC">Public</option>
-                    </select>
-                    <button class="df-button df-button-primary w-full">Simpan Pendidikan</button>
-                </form>
             </x-ui.card>
 
             <x-ui.card id="profil-publik" class="p-5">
