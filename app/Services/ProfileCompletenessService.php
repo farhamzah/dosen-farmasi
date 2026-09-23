@@ -46,7 +46,7 @@ class ProfileCompletenessService
         }
 
         if (! $checks['Jabatan aktif']) {
-            $actions[] = 'Unggah atau catat SK jabatan fungsional terbaru.';
+            $actions[] = 'Tambahkan jabatan fungsional aktif pada bagian Karier.';
         }
 
         if (! $checks['Bidang ilmu']) {

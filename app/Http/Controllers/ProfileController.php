@@ -20,6 +20,21 @@ use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
+    private const CV_TEMPLATES = [
+        'akademik' => [
+            'label' => 'CV Akademik',
+            'description' => 'Untuk pengajuan kampus, profil dosen, dan kebutuhan resmi.',
+        ],
+        'impact' => [
+            'label' => 'Portofolio Mitra',
+            'description' => 'Untuk memperkenalkan karya dan kolaborasi kepada mitra.',
+        ],
+        'editorial' => [
+            'label' => 'CV Ringkas',
+            'description' => 'Untuk ringkasan cepat yang mudah dicetak sebagai PDF.',
+        ],
+    ];
+
     public function show(Request $request, ProfileCompletenessService $completeness)
     {
         $lecturerId = (string) $request->user()->core_lecturer_id;
@@ -37,6 +52,7 @@ class ProfileController extends Controller
             'completeness' => $completeness->build($request->user()),
             'levels' => LecturerEducation::LEVELS,
             'identifierTypes' => LecturerExternalIdentifier::TYPES,
+            'cvTemplates' => self::CV_TEMPLATES,
         ]);
     }
 
@@ -167,20 +183,22 @@ class ProfileController extends Controller
             ->where('public_profile_enabled', true)
             ->firstOrFail();
 
-        $templates = [
-            'akademik' => [
-                'label' => 'Akademik',
-                'description' => 'Format resmi untuk profil dosen, portofolio, dan kebutuhan institusi.',
-            ],
-            'impact' => [
-                'label' => 'Impact',
-                'description' => 'Tampilan editorial dengan aksen hijau-emas untuk dibagikan ke mitra.',
-            ],
-            'editorial' => [
-                'label' => 'Editorial',
-                'description' => 'Layout ringkas dua kolom untuk CV cepat dan mudah dicetak.',
-            ],
-        ];
+        return $this->renderCv($request, $lecturerCoreId, $visibility, false);
+    }
+
+    public function previewProfile(Request $request)
+    {
+        $lecturerCoreId = (string) $request->user()->core_lecturer_id;
+        abort_if($lecturerCoreId === '', 403);
+
+        $visibility = ProfileVisibilitySetting::query()->firstOrCreate(['lecturer_core_id' => $lecturerCoreId]);
+
+        return $this->renderCv($request, $lecturerCoreId, $visibility, true);
+    }
+
+    private function renderCv(Request $request, string $lecturerCoreId, ProfileVisibilitySetting $visibility, bool $preview)
+    {
+        $templates = self::CV_TEMPLATES;
         $selectedTemplate = $request->string('template')->lower()->toString();
         $selectedTemplate = array_key_exists($selectedTemplate, $templates) ? $selectedTemplate : 'akademik';
 
@@ -188,14 +206,21 @@ class ProfileController extends Controller
             'visibility' => $visibility,
             'templates' => $templates,
             'selectedTemplate' => $selectedTemplate,
+            'preview' => $preview,
             'lecturer' => LecturerSnapshot::query()->where('core_lecturer_id', $lecturerCoreId)->first(),
             'user' => AppUser::query()->where('core_lecturer_id', $lecturerCoreId)->first(),
-            'educations' => LecturerEducation::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->orderByDesc('end_year')->get(),
+            'educations' => $visibility->sectionVisibility('education') === 'PUBLIC'
+                ? LecturerEducation::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->orderByDesc('end_year')->get()
+                : collect(),
             'functionalPositions' => LecturerFunctionalPosition::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->orderByDesc('is_active')->orderByDesc('effective_date')->get(),
             'structuralPositions' => LecturerStructuralPosition::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->orderByDesc('is_active')->orderByDesc('start_date')->get(),
             'certifications' => LecturerCertification::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->orderByDesc('issued_at')->get(),
-            'expertiseAreas' => LecturerExpertiseArea::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->get(),
-            'identifiers' => LecturerExternalIdentifier::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->get(),
+            'expertiseAreas' => $visibility->sectionVisibility('expertise') === 'PUBLIC'
+                ? LecturerExpertiseArea::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->get()
+                : collect(),
+            'identifiers' => $visibility->sectionVisibility('identifiers') === 'PUBLIC'
+                ? LecturerExternalIdentifier::query()->where('lecturer_core_id', $lecturerCoreId)->where('visibility', 'PUBLIC')->get()
+                : collect(),
             'activities' => PortfolioActivity::query()->with('category')
                 ->where('lecturer_core_id', $lecturerCoreId)
                 ->where('visibility', 'PUBLIC')

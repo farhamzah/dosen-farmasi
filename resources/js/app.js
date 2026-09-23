@@ -12,8 +12,10 @@ window.addEventListener('hashchange', openHashDetails);
 openHashDetails();
 
 document.addEventListener('click', (event) => {
-    if (event.target.closest('a[href="#tambah-pendidikan"]')) {
-        document.getElementById('tambah-pendidikan')?.setAttribute('open', '');
+    const anchor = event.target.closest('a[href^="#tambah-"]');
+
+    if (anchor) {
+        document.getElementById(anchor.hash.slice(1))?.setAttribute('open', '');
     }
 });
 

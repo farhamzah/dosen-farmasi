@@ -20,7 +20,7 @@
             'hero' => 'bg-[var(--brand-950)] text-white',
             'side' => 'bg-[var(--surface)]',
             'accent' => 'text-[var(--brand-700)]',
-            'title' => 'Academic Portfolio Console',
+            'title' => 'CV Akademik',
         ],
         'impact' => [
             'page' => 'bg-[radial-gradient(circle_at_88%_3%,#dcebe3,transparent_26%),linear-gradient(135deg,#f8f5ec,#eef6f1)]',
@@ -28,7 +28,7 @@
             'hero' => 'bg-[linear-gradient(132deg,#123d30_0%,#1e684d_82%,#d7b86b_82%_86%,#1c6048_86%)] text-white',
             'side' => 'bg-[#edf4ef]',
             'accent' => 'text-emerald-800',
-            'title' => 'Lecturer Impact Portfolio',
+            'title' => 'Portofolio Mitra',
         ],
         'editorial' => [
             'page' => 'bg-[linear-gradient(135deg,#f8fafc,#f1f5f9)]',
@@ -36,7 +36,7 @@
             'hero' => 'bg-[linear-gradient(120deg,#ffffff_0%,#ffffff_58%,#eef4fb_58%)] text-[var(--text-primary)]',
             'side' => 'bg-white',
             'accent' => 'text-slate-700',
-            'title' => 'Curriculum Vitae Akademik',
+            'title' => 'CV Ringkas',
         ],
     ][$selectedTemplate] ?? [];
     $isEditorial = $selectedTemplate === 'editorial';
@@ -46,28 +46,29 @@
 <div class="min-h-screen {{ $templateConfig['page'] }} px-4 py-6 sm:px-6 lg:py-10">
     <div class="mx-auto max-w-6xl">
         <div class="mb-5 flex flex-col gap-3 print:hidden sm:flex-row sm:items-center sm:justify-between">
-            <a href="{{ route('login') }}" class="text-sm font-bold text-[var(--brand-800)]">Dosen Farmasi UBP</a>
+            <a href="{{ $preview ? route('profile.show') : route('login') }}" class="text-sm font-bold text-[var(--brand-800)]">{{ $preview ? 'Kembali ke Profil Akademik' : 'Dosen Farmasi UBP' }}</a>
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div class="flex flex-wrap gap-2" aria-label="Template CV">
+                <nav class="flex flex-wrap gap-2" aria-label="Pilih tampilan CV">
                     @foreach($templates as $key => $template)
-                        <a href="{{ route('profile.public', ['lecturerCoreId' => $visibility->lecturer_core_id, 'template' => $key]) }}" class="rounded-[var(--radius-sm)] border px-3 py-2 text-xs font-black {{ $selectedTemplate === $key ? 'border-[var(--brand-700)] bg-[var(--brand-800)] text-white' : 'border-[var(--border)] bg-white text-[var(--brand-800)]' }}">
+                        <a href="{{ $preview ? route('profile.preview', ['template' => $key]) : route('profile.public', ['lecturerCoreId' => $visibility->lecturer_core_id, 'template' => $key]) }}" aria-current="{{ $selectedTemplate === $key ? 'page' : 'false' }}" title="{{ $template['description'] }}" class="rounded-[var(--radius-sm)] border px-3 py-2 text-xs font-bold {{ $selectedTemplate === $key ? 'border-[var(--brand-700)] bg-[var(--brand-800)] text-white' : 'border-[var(--border)] bg-white text-[var(--brand-800)]' }}">
                             {{ $template['label'] }}
                         </a>
                     @endforeach
-                </div>
+                </nav>
                 <button type="button" onclick="window.print()" class="df-button df-button-primary sm:w-auto">Cetak / Simpan PDF</button>
             </div>
         </div>
+        <p class="mb-4 text-sm text-[var(--text-secondary)] print:hidden"><strong>{{ $templates[$selectedTemplate]['label'] }}</strong> · {{ $templates[$selectedTemplate]['description'] }} {{ $preview ? 'Pratinjau ini hanya dapat dilihat oleh Anda.' : 'Tampilan ini hanya mengubah desain, bukan isi CV.' }}</p>
 
         <main class="overflow-hidden {{ $templateConfig['paper'] }} print:rounded-none print:border-0 print:shadow-none">
             <section class="relative overflow-hidden {{ $templateConfig['hero'] }} px-6 py-8 sm:px-8 lg:px-10">
                 <div class="absolute inset-x-0 top-0 h-1.5 bg-[linear-gradient(90deg,var(--brand-600),var(--research),var(--service))]"></div>
-                <div class="grid gap-8 {{ $isEditorial ? 'lg:grid-cols-[9rem_minmax(0,1fr)]' : 'lg:grid-cols-[minmax(0,1fr)_22rem]' }} lg:items-center">
-                    <div class="flex flex-col gap-6 sm:flex-row sm:items-center">
+                <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center">
+                    <div class="flex min-w-0 flex-col gap-6 sm:flex-row sm:items-center">
                         <x-ui.avatar :name="$displayName" :src="$photoUrl" size="h-28 w-28 sm:h-32 sm:w-32" class="{{ $isEditorial ? 'rounded-2xl ring-[var(--border)]' : 'rounded-3xl ring-white/20' }}" text-class="text-4xl" />
                         <div class="min-w-0">
                             <p class="text-xs font-black uppercase tracking-[0.22em] {{ $isEditorial ? 'text-[var(--text-muted)]' : 'text-white/60' }}">{{ $templateConfig['title'] }}</p>
-                            <h1 class="mt-3 text-4xl font-black leading-tight sm:text-5xl {{ $selectedTemplate === 'impact' ? 'font-serif' : '' }}">{{ $displayName }}</h1>
+                            <h1 class="mt-3 break-words text-4xl font-black leading-tight sm:text-5xl {{ $selectedTemplate === 'impact' ? 'font-serif' : '' }}">{{ $displayName }}</h1>
                             <p class="mt-3 max-w-2xl text-base font-semibold leading-7 {{ $isEditorial ? 'text-[var(--text-secondary)]' : 'text-white/78' }}">
                                 {{ $activeFunctional?->position_name ?: 'Dosen Program Studi Farmasi' }}
                                 @if($primaryExpertise)
@@ -76,14 +77,14 @@
                             </p>
                             <div class="mt-5 flex flex-wrap gap-2">
                                 @if($displayEmail)
-                                    <span class="rounded-full {{ $isEditorial ? 'bg-white text-[var(--brand-800)] ring-[var(--border)]' : 'bg-white/10 text-white ring-white/15' }} px-3 py-1.5 text-sm font-bold ring-1">{{ $displayEmail }}</span>
+                                    <span class="max-w-full break-all rounded-full {{ $isEditorial ? 'bg-white text-[var(--brand-800)] ring-[var(--border)]' : 'bg-white/10 text-white ring-white/15' }} px-3 py-1.5 text-sm font-bold ring-1">{{ $displayEmail }}</span>
                                 @endif
-                                <span class="rounded-full {{ $isEditorial ? 'bg-emerald-50 text-emerald-800 ring-emerald-100' : 'bg-emerald-400/15 text-emerald-100 ring-emerald-200/20' }} px-3 py-1.5 text-sm font-bold ring-1">Profil publik aman</span>
+                                <span class="rounded-full {{ $isEditorial ? 'bg-emerald-50 text-emerald-800 ring-emerald-100' : 'bg-emerald-400/15 text-emerald-100 ring-emerald-200/20' }} px-3 py-1.5 text-sm font-bold ring-1">{{ $preview ? 'Pratinjau pribadi' : 'Profil publik' }}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="{{ $isEditorial ? 'lg:col-start-2' : '' }} rounded-3xl {{ $isEditorial ? 'bg-white p-0 text-[var(--text-primary)]' : 'bg-white/10 p-5 text-white ring-1 ring-white/15' }}">
+                    <div class="min-w-0 rounded-3xl {{ $isEditorial ? 'bg-white p-0 text-[var(--text-primary)]' : 'bg-white/10 p-5 text-white ring-1 ring-white/15' }}">
                         <p class="text-sm font-bold {{ $isEditorial ? 'text-[var(--text-secondary)]' : 'text-white/70' }}">Ringkasan Publik</p>
                         <div class="mt-4 grid grid-cols-3 gap-2">
                             @foreach($publicSections as $section)
@@ -113,7 +114,7 @@
                                     @endif
                                 </article>
                             @empty
-                                <p class="text-sm text-[var(--text-muted)]">Belum ada pendidikan public.</p>
+                                <p class="text-sm text-[var(--text-muted)]">Belum ada pendidikan yang ditampilkan.</p>
                             @endforelse
                         </div>
                     </section>
@@ -136,7 +137,7 @@
                                     @endif
                                 </article>
                             @empty
-                                <p class="text-sm text-[var(--text-muted)]">Belum ada aktivitas public.</p>
+                                <p class="text-sm text-[var(--text-muted)]">Belum ada aktivitas yang ditampilkan.</p>
                             @endforelse
                         </div>
                     </section>
@@ -167,7 +168,7 @@
                                     <p class="mt-1 text-sm text-[var(--text-secondary)]">TMT {{ optional($position->effective_date)->format('Y') ?: 'belum dipublikasikan' }}</p>
                                 </div>
                             @empty
-                                <p class="text-sm text-[var(--text-muted)]">Jabatan public belum tersedia.</p>
+                                <p class="text-sm text-[var(--text-muted)]">Belum ada jabatan yang ditampilkan.</p>
                             @endforelse
 
                             @foreach($certifications as $certification)

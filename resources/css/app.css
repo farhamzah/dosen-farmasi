@@ -445,6 +445,27 @@
     padding-top: 1rem;
 }
 
+.df-profile-add-form,
+.df-profile-edit {
+    container-type: inline-size;
+}
+
+.df-profile-record-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+}
+
+.df-profile-record-full {
+    grid-column: 1 / -1;
+}
+
+@container (min-width: 34rem) {
+    .df-profile-record-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 .df-profile-add-form > summary {
     display: flex;
     cursor: pointer;
@@ -469,6 +490,35 @@
     color: var(--text-secondary);
     font-size: 0.8rem;
     font-weight: 650;
+}
+
+.df-profile-edit {
+    border-top: 1px solid var(--border);
+    padding-top: 0.75rem;
+}
+
+.df-profile-edit > summary {
+    cursor: pointer;
+    color: var(--brand-700);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.df-profile-template-option {
+    display: block;
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: white;
+    padding: 0.75rem;
+    color: var(--text-primary);
+    transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+a.df-profile-template-option:hover,
+a.df-profile-template-option:focus-visible {
+    border-color: var(--brand-600);
+    background: var(--brand-50);
 }
 
 @media (min-width: 1024px) {

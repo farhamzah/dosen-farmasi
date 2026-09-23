@@ -9,11 +9,16 @@
     $activeFunctional = $functionalPositions->firstWhere('is_active', true) ?? $functionalPositions->first();
     $milestones = ['S1', 'Profesi', 'S2', 'S3'];
     $completedMilestones = $educations->pluck('level')->all();
-    $careerStages = ['Asisten Ahli', 'Lektor', 'Lektor Kepala', 'Guru Besar'];
 @endphp
 
 @section('content')
 <div class="df-profile-page space-y-5">
+    @if($errors->any())
+        <div role="alert" class="rounded-[var(--radius-sm)] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
+            <p class="font-bold">Periksa kembali data yang diisi.</p>
+            <ul class="mt-2 list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
     <x-academic.academic-profile-header
         :user="$user"
         :completeness="$completeness"
@@ -32,7 +37,7 @@
             @if($visibilitySetting->public_profile_enabled)
                 <a href="{{ route('profile.public', $user->core_lecturer_id) }}" class="df-button df-button-primary">Lihat CV publik</a>
             @else
-                <a href="#profil-publik" class="df-button df-button-primary">Siapkan CV publik</a>
+                <a href="{{ route('profile.preview') }}" class="df-button df-button-primary">Pratinjau CV</a>
             @endif
         </div>
     </div>
@@ -43,7 +48,9 @@
             'pendidikan' => 'Pendidikan',
             'karier' => 'Karier',
             'keilmuan' => 'Keilmuan',
+            'sertifikasi' => 'Sertifikasi',
             'identitas-ilmiah' => 'Identitas Ilmiah',
+            'profil-publik' => 'CV Publik',
             'visibilitas' => 'Visibilitas',
         ] as $anchor => $label)
             <a href="#{{ $anchor }}" class="shrink-0 rounded-[var(--radius-sm)] px-4 py-2.5 text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--brand-50)] hover:text-[var(--brand-800)]">{{ $label }}</a>
@@ -171,48 +178,50 @@
                     <p class="mt-2 text-sm font-semibold text-[var(--text-secondary)]">TMT {{ optional($activeFunctional?->effective_date)->format('d M Y') ?: 'belum diisi' }} · KUM {{ $activeFunctional?->credit_score ?: '-' }}</p>
                 </div>
 
-                <div class="mt-5 grid gap-4 lg:grid-cols-2">
-                    <div>
-                        <p class="mb-4 text-sm font-bold text-[var(--text-primary)]">Jenjang jabatan</p>
-                        <div class="grid gap-2 sm:grid-cols-4 lg:grid-cols-2">
-                            @foreach($careerStages as $stage)
-                                @php($reached = $functionalPositions->contains(fn ($position) => str($position->position_name)->contains($stage, true)))
-                                <div class="rounded-[var(--radius-md)] border {{ $reached ? 'border-emerald-100 bg-emerald-50 text-emerald-900' : 'border-dashed border-[var(--border)] bg-white text-[var(--text-muted)]' }} p-3">
-                                    <p class="text-sm font-black">{{ $stage }}</p>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    <div>
-                        <p class="mb-4 text-sm font-black text-[var(--text-primary)]">Riwayat Jabatan</p>
-                        @if($functionalPositions->isNotEmpty())
-                            <x-ui.timeline>
-                                @foreach($functionalPositions as $position)
-                                    <x-academic.career-timeline-item
-                                        :title="$position->position_name"
-                                        :caption="(optional($position->effective_date)->format('d M Y') ?: 'TMT belum diisi').' · '.($position->credit_score ? 'KUM '.$position->credit_score : 'KUM belum diisi')"
-                                        :active="$position->is_active"
-                                    />
-                                @endforeach
-                            </x-ui.timeline>
-                        @else
-                            <x-ui.empty-state title="Jabatan fungsional aktif belum dicatat" description="Data jabatan dapat dikelola admin melalui ruang kontrol." />
-                        @endif
-                    </div>
+                <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+                    <h3 class="text-base font-bold">Riwayat jabatan fungsional</h3>
+                    <a href="#tambah-jabatan-fungsional" class="text-sm font-bold text-[var(--brand-700)] hover:underline">Tambah jabatan</a>
                 </div>
+                <div class="mt-3 space-y-3">
+                    @forelse($functionalPositions as $position)
+                        <div class="rounded-[var(--radius-sm)] border border-[var(--border)] p-4">
+                            <div class="flex flex-wrap items-start justify-between gap-2">
+                                <div>
+                                    <p class="font-bold">{{ $position->position_name }} <span class="text-xs font-medium text-[var(--text-muted)]">{{ $position->is_active ? 'Aktif' : 'Riwayat' }}</span></p>
+                                    <p class="mt-1 text-sm text-[var(--text-secondary)]">TMT {{ optional($position->effective_date)->format('d M Y') ?: 'belum diisi' }}{{ $position->unit ? ' · '.$position->unit : '' }}</p>
+                                </div>
+                                <span class="text-xs font-semibold text-[var(--text-muted)]">{{ ucfirst(strtolower($position->visibility)) }}</span>
+                            </div>
+                            @if($position->source_type === 'MANUAL')
+                                <details class="df-profile-edit mt-3"><summary>Edit jabatan dan visibilitas</summary><x-academic.profile-record-form kind="functional" :record="$position" /></details>
+                            @else
+                                <p class="mt-2 text-xs text-[var(--text-muted)]">Data terhubung dari sistem sumber.</p>
+                            @endif
+                        </div>
+                    @empty
+                        <p class="py-3 text-sm text-[var(--text-secondary)]">Belum ada jabatan fungsional. Catat riwayat Anda untuk melengkapi profil.</p>
+                    @endforelse
+                </div>
+                <details id="tambah-jabatan-fungsional" class="df-profile-add-form mt-4"><summary>Tambah jabatan fungsional <span aria-hidden="true">+</span></summary><x-academic.profile-record-form kind="functional" /></details>
 
                 <div class="mt-6">
-                    <p class="mb-4 text-sm font-black text-[var(--text-primary)]">Tugas Tambahan</p>
-                    <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="flex flex-wrap items-center justify-between gap-3"><h3 class="text-base font-bold">Tugas tambahan</h3><a href="#tambah-tugas-tambahan" class="text-sm font-bold text-[var(--brand-700)] hover:underline">Tambah tugas</a></div>
+                    <div class="mt-3 grid gap-3 sm:grid-cols-2">
                         @forelse($structuralPositions as $position)
                             <div class="rounded-[var(--radius-md)] border border-[var(--border)] bg-white p-4">
-                                <p class="font-black text-[var(--text-primary)]">{{ $position->position_name }}</p>
-                                <p class="mt-1 text-sm text-[var(--text-secondary)]">{{ $position->unit ?: 'Unit belum diisi' }} · {{ $position->is_active ? 'Aktif' : 'Riwayat' }}</p>
+                                <p class="font-bold text-[var(--text-primary)]">{{ $position->position_name }}</p>
+                                <p class="mt-1 text-sm text-[var(--text-secondary)]">{{ $position->unit ?: 'Unit belum diisi' }} · {{ $position->is_active ? 'Aktif' : 'Riwayat' }} · {{ ucfirst(strtolower($position->visibility)) }}</p>
+                                @if($position->source_type === 'MANUAL')
+                                    <details class="df-profile-edit mt-3"><summary>Edit tugas dan visibilitas</summary><x-academic.profile-record-form kind="structural" :record="$position" /></details>
+                                @else
+                                    <p class="mt-2 text-xs text-[var(--text-muted)]">Data terhubung dari sistem sumber.</p>
+                                @endif
                             </div>
                         @empty
-                            <x-ui.empty-state title="Belum ada jabatan struktural" description="Tugas tambahan atau jabatan struktural akan tampil di bagian ini." />
+                            <p class="text-sm text-[var(--text-secondary)]">Belum ada tugas tambahan.</p>
                         @endforelse
                     </div>
+                    <details id="tambah-tugas-tambahan" class="df-profile-add-form mt-4"><summary>Tambah tugas tambahan <span aria-hidden="true">+</span></summary><x-academic.profile-record-form kind="structural" /></details>
                 </div>
             </x-ui.card>
 
@@ -221,7 +230,7 @@
                     eyebrow="Keilmuan"
                     title="Bidang Kepakaran"
                     description="Bidang utama, spesialisasi, dan topik riset yang menggambarkan kepakaran Anda."
-                />
+                ><x-slot:actions><a href="#tambah-kepakaran" class="df-button df-button-secondary">Tambah kepakaran</a></x-slot:actions></x-ui.section-header>
                 <div class="mt-5 space-y-5">
                     @forelse($expertiseAreas as $area)
                         <div class="rounded-[var(--radius-lg)] border border-[var(--border)] bg-white p-4">
@@ -231,11 +240,18 @@
                                     <span class="rounded-full border border-[var(--brand-100)] bg-[var(--brand-50)] px-3 py-1.5 text-sm font-bold text-[var(--brand-800)]">{{ $chip }}</span>
                                 @endforeach
                             </div>
+                            <p class="mt-3 text-xs font-semibold text-[var(--text-muted)]">{{ ucfirst(strtolower($area->visibility)) }}</p>
+                            @if($area->source_type === 'MANUAL')
+                                <details class="df-profile-edit mt-3"><summary>Edit kepakaran dan visibilitas</summary><x-academic.profile-record-form kind="expertise" :record="$area" /></details>
+                            @else
+                                <p class="mt-2 text-xs text-[var(--text-muted)]">Data terhubung dari sistem sumber.</p>
+                            @endif
                         </div>
                     @empty
-                        <x-ui.empty-state title="Bidang keilmuan belum diisi" description="Tambahkan bidang utama, spesialisasi, dan topik riset agar profil lebih mudah ditemukan untuk kolaborasi." />
+                        <p class="text-sm text-[var(--text-secondary)]">Belum ada bidang kepakaran. Tambahkan bidang utama agar profil dan CV lebih informatif.</p>
                     @endforelse
                 </div>
+                <details id="tambah-kepakaran" class="df-profile-add-form mt-5"><summary>Tambah bidang kepakaran <span aria-hidden="true">+</span></summary><x-academic.profile-record-form kind="expertise" /></details>
             </x-ui.card>
 
             <x-ui.card class="p-5 sm:p-6">
@@ -244,49 +260,29 @@
                     @forelse($recentAcademicActivities as $activity)
                         <x-academic.activity-item :activity="$activity" />
                     @empty
-                        <x-ui.empty-state title="Belum ada aktivitas akademik" description="Aktivitas dari Tridharma akan tampil di sini setelah tercatat." />
+                        <p class="text-sm text-[var(--text-secondary)]">Belum ada aktivitas akademik. <a href="{{ route('tridharma.index') }}" class="font-bold text-[var(--brand-700)] underline">Buka Tridharma</a> untuk melihat atau menambah kegiatan.</p>
                     @endforelse
                 </div>
             </x-ui.card>
         </div>
 
         <aside class="min-w-0 space-y-5">
-            <x-ui.card class="overflow-hidden">
+            <x-ui.card id="profil-publik" class="overflow-hidden">
                 <div class="border-b border-[var(--border)] p-5">
                     <p class="df-profile-eyebrow">CV dan Portofolio</p>
-                    <h2 class="mt-1 text-lg font-bold text-[var(--text-primary)]">Tampilan profil publik</h2>
-                    <p class="mt-1 text-sm leading-6 text-[var(--text-secondary)]">Lihat informasi yang dapat dibagikan dari profil Anda.</p>
+                    <h2 class="mt-1 text-lg font-bold text-[var(--text-primary)]">Pilih tampilan CV</h2>
+                    <p class="mt-1 text-sm leading-6 text-[var(--text-secondary)]">Semua pilihan memakai data yang sama. Pilihan hanya mengubah tampilan saat dilihat atau dicetak.</p>
                 </div>
                 <div class="space-y-4 p-5">
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                        <div class="rounded-[var(--radius-sm)] bg-[var(--brand-50)] p-3">
-                            <p class="text-lg font-black text-[var(--brand-900)]">{{ $educations->count() }}</p>
-                            <p class="mt-1 text-[11px] font-bold text-[var(--text-muted)]">Pendidikan</p>
-                        </div>
-                        <div class="rounded-[var(--radius-sm)] bg-[var(--research-soft)] p-3">
-                            <p class="text-lg font-black text-teal-800">{{ $recentAcademicActivities->count() }}</p>
-                            <p class="mt-1 text-[11px] font-bold text-[var(--text-muted)]">Aktivitas</p>
-                        </div>
-                        <div class="rounded-[var(--radius-sm)] bg-[var(--service-soft)] p-3">
-                            <p class="text-lg font-black text-amber-800">{{ $identifiers->count() }}</p>
-                            <p class="mt-1 text-[11px] font-bold text-[var(--text-muted)]">ID Ilmiah</p>
-                        </div>
+                    <p class="text-xs font-semibold text-[var(--text-muted)]">{{ $visibilitySetting->public_profile_enabled ? 'Lihat CV yang dapat dibagikan' : 'Pratinjau pribadi · belum dibagikan' }}</p>
+                    <div class="space-y-2">
+                        @foreach($cvTemplates as $template => $option)
+                            <a href="{{ $visibilitySetting->public_profile_enabled ? route('profile.public', ['lecturerCoreId' => $user->core_lecturer_id, 'template' => $template]) : route('profile.preview', ['template' => $template]) }}" class="df-profile-template-option">
+                                <span class="block font-bold text-[var(--text-primary)]">{{ $option['label'] }}</span>
+                                <span class="mt-1 block text-xs leading-5 text-[var(--text-secondary)]">{{ $option['description'] }}</span>
+                            </a>
+                        @endforeach
                     </div>
-
-                    @if($visibilitySetting->public_profile_enabled)
-                        <x-ui.button :href="route('profile.public', $user->core_lecturer_id)" variant="secondary" class="w-full">Buka CV Publik</x-ui.button>
-                        <div class="grid grid-cols-3 gap-2">
-                            @foreach(['akademik' => 'Akademik', 'impact' => 'Impact', 'editorial' => 'Editorial'] as $template => $label)
-                                <a href="{{ route('profile.public', ['lecturerCoreId' => $user->core_lecturer_id, 'template' => $template]) }}" class="rounded-[var(--radius-sm)] border border-[var(--border)] bg-white px-2 py-2 text-center text-[11px] font-black text-[var(--brand-800)] hover:bg-[var(--brand-50)]">
-                                    {{ $label }}
-                                </a>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="rounded-[var(--radius-md)] border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-950">
-                            Aktifkan profil publik agar CV otomatis bisa dibagikan tanpa data sensitif.
-                        </div>
-                    @endif
 
                     <a href="#visibilitas" class="df-button df-button-primary w-full">Atur Data yang Tampil</a>
                     <p class="text-xs leading-5 text-[var(--text-muted)]">NIK, alamat rumah, nomor HP pribadi, nomor dokumen, dan file bukti tidak ikut tampil di CV publik.</p>
@@ -297,6 +293,7 @@
 
             <x-ui.card id="visibilitas" class="p-5">
                 <x-ui.section-header title="Visibilitas Profil" description="Atur bagian mana yang boleh tampil untuk publik." />
+                <p class="mt-3 text-xs leading-5 text-[var(--text-secondary)]">Bagian dan itemnya harus sama-sama dipilih Public agar muncul di CV yang dibagikan. Pratinjau pribadi tetap tersedia sebelum profil publik diaktifkan.</p>
                 <form method="post" action="{{ route('profile.visibility.update') }}" class="mt-5 space-y-4">
                     @csrf
                     <label class="flex min-h-12 items-center gap-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-white p-3 text-sm font-black text-[var(--text-primary)]">
@@ -362,38 +359,27 @@
                 </form>
             </x-ui.card>
 
-            <x-ui.card class="p-5">
+            <x-ui.card id="sertifikasi" class="p-5">
                 <x-ui.section-header title="Sertifikasi" description="Sertifikasi akademik dan profesi yang tercatat." />
                 <div class="mt-5 space-y-3">
                     @forelse($certifications as $certification)
                         <div class="rounded-[var(--radius-md)] border border-[var(--border)] bg-white p-4">
                             <p class="font-black text-[var(--text-primary)]">{{ $certification->name }}</p>
                             <p class="mt-1 text-sm text-[var(--text-secondary)]">{{ $certification->issuer ?: 'Penerbit belum diisi' }} · {{ $certification->status }}</p>
+                            <p class="mt-1 text-xs text-[var(--text-muted)]">{{ ucfirst(strtolower($certification->visibility)) }}</p>
+                            @if($certification->source_type === 'MANUAL')
+                                <details class="df-profile-edit mt-3"><summary>Edit sertifikasi dan visibilitas</summary><x-academic.profile-record-form kind="certification" :record="$certification" /></details>
+                            @else
+                                <p class="mt-2 text-xs text-[var(--text-muted)]">Data terhubung dari sistem sumber.</p>
+                            @endif
                         </div>
                     @empty
-                        <x-ui.empty-state title="Belum ada sertifikasi" description="Sertifikasi profesi dan akademik akan tampil setelah dicatat." />
+                        <p class="text-sm text-[var(--text-secondary)]">Belum ada sertifikasi. Tambahkan sertifikasi yang relevan untuk profil atau CV.</p>
                     @endforelse
                 </div>
+                <details id="tambah-sertifikasi" class="df-profile-add-form mt-5"><summary>Tambah sertifikasi <span aria-hidden="true">+</span></summary><x-academic.profile-record-form kind="certification" /></details>
             </x-ui.card>
 
-            <x-ui.card id="profil-publik" class="p-5">
-                <x-ui.section-header title="Profil Publik" description="CV live yang dapat dibagikan tanpa membuka data sensitif." />
-                @if($visibilitySetting->public_profile_enabled)
-                    <div class="mt-5 space-y-3">
-                        <x-ui.button :href="route('profile.public', $user->core_lecturer_id)" variant="secondary" class="w-full">Lihat CV Publik</x-ui.button>
-                        <div class="grid grid-cols-3 gap-2">
-                            @foreach(['akademik' => 'Akademik', 'impact' => 'Impact', 'editorial' => 'Editorial'] as $template => $label)
-                                <a href="{{ route('profile.public', ['lecturerCoreId' => $user->core_lecturer_id, 'template' => $template]) }}" class="rounded-[var(--radius-sm)] border border-[var(--border)] bg-white px-2 py-2 text-center text-[11px] font-black text-[var(--brand-800)] hover:bg-[var(--brand-50)]">
-                                    {{ $label }}
-                                </a>
-                            @endforeach
-                        </div>
-                        <p class="text-xs leading-5 text-[var(--text-muted)]">Gunakan tombol cetak di halaman publik untuk menyimpan sebagai PDF.</p>
-                    </div>
-                @else
-                    <x-ui.empty-state class="mt-5" title="Profil publik belum aktif" description="Aktifkan visibilitas publik sebelum profil dibagikan." />
-                @endif
-            </x-ui.card>
         </aside>
     </section>
 </div>

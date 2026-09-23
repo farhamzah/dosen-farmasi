@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\AdminIntegrationEventController;
+use App\Http\Controllers\AcademicProfileRecordController;
 use App\Http\Controllers\AdminAcademicProfileController;
+use App\Http\Controllers\AdminIntegrationEventController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DashboardController;
@@ -75,6 +76,7 @@ Route::middleware(['auth', 'dosen.role:dosen,admin'])->group(function (): void {
         ->whereIn('domain', ['pendidikan', 'penelitian', 'pengabdian'])
         ->name('tridharma.domain');
     Route::get('/profil', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profil/cv-pratinjau', [ProfileController::class, 'previewProfile'])->name('profile.preview');
     Route::post('/profil/pendidikan', [ProfileController::class, 'storeEducation'])->name('profile.educations.store');
     Route::put('/profil/pendidikan/{education}', [ProfileController::class, 'updateEducation'])->name('profile.educations.update');
     Route::delete('/profil/pendidikan/{education}', [ProfileController::class, 'destroyEducation'])->name('profile.educations.destroy');
@@ -82,6 +84,18 @@ Route::middleware(['auth', 'dosen.role:dosen,admin'])->group(function (): void {
     Route::put('/profil/identitas-ilmiah/{identifier}', [ProfileController::class, 'updateIdentifier'])->name('profile.identifiers.update');
     Route::delete('/profil/identitas-ilmiah/{identifier}', [ProfileController::class, 'destroyIdentifier'])->name('profile.identifiers.destroy');
     Route::post('/profil/visibilitas', [ProfileController::class, 'updateVisibility'])->name('profile.visibility.update');
+    Route::post('/profil/kepakaran', [AcademicProfileRecordController::class, 'storeExpertise'])->name('profile.expertise.store');
+    Route::put('/profil/kepakaran/{expertise}', [AcademicProfileRecordController::class, 'updateExpertise'])->name('profile.expertise.update');
+    Route::delete('/profil/kepakaran/{expertise}', [AcademicProfileRecordController::class, 'destroyExpertise'])->name('profile.expertise.destroy');
+    Route::post('/profil/sertifikasi', [AcademicProfileRecordController::class, 'storeCertification'])->name('profile.certifications.store');
+    Route::put('/profil/sertifikasi/{certification}', [AcademicProfileRecordController::class, 'updateCertification'])->name('profile.certifications.update');
+    Route::delete('/profil/sertifikasi/{certification}', [AcademicProfileRecordController::class, 'destroyCertification'])->name('profile.certifications.destroy');
+    Route::post('/profil/jabatan-fungsional', [AcademicProfileRecordController::class, 'storeFunctionalPosition'])->name('profile.functional-positions.store');
+    Route::put('/profil/jabatan-fungsional/{position}', [AcademicProfileRecordController::class, 'updateFunctionalPosition'])->name('profile.functional-positions.update');
+    Route::delete('/profil/jabatan-fungsional/{position}', [AcademicProfileRecordController::class, 'destroyFunctionalPosition'])->name('profile.functional-positions.destroy');
+    Route::post('/profil/tugas-tambahan', [AcademicProfileRecordController::class, 'storeStructuralPosition'])->name('profile.structural-positions.store');
+    Route::put('/profil/tugas-tambahan/{position}', [AcademicProfileRecordController::class, 'updateStructuralPosition'])->name('profile.structural-positions.update');
+    Route::delete('/profil/tugas-tambahan/{position}', [AcademicProfileRecordController::class, 'destroyStructuralPosition'])->name('profile.structural-positions.destroy');
 });
 
 Route::get('/profil-publik/{lecturerCoreId}', [ProfileController::class, 'publicProfile'])->name('profile.public');
