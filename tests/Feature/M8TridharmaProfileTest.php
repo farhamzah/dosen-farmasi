@@ -14,6 +14,7 @@ use App\Models\PortfolioActivity;
 use App\Models\PortfolioCategory;
 use App\Services\TridharmaPortfolioService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class M8TridharmaProfileTest extends TestCase
@@ -40,6 +41,12 @@ class M8TridharmaProfileTest extends TestCase
         }
 
         $service = app(TridharmaPortfolioService::class);
+        $yearlyQueries = [];
+        DB::listen(function ($query) use (&$yearlyQueries): void {
+            if (str_contains($query->sql, 'year_label')) {
+                $yearlyQueries[] = $query->sql;
+            }
+        });
         $summary = $service->summary($user->core_lecturer_id, 'penelitian');
         $this->assertSame(2, $summary['total']);
         $this->assertSame(1, $summary['manual_count']);
@@ -48,6 +55,11 @@ class M8TridharmaProfileTest extends TestCase
         $this->assertSame(1, $filtered['total']);
         $this->assertSame(0, $filtered['system_count']);
         $this->assertEquals(1, $filtered['yearly']['2026/2027']);
+        $this->assertCount(2, $yearlyQueries);
+        foreach ($yearlyQueries as $sql) {
+            $this->assertStringNotContainsString('documents_count', $sql);
+            $this->assertDoesNotMatchRegularExpression('/portfolio_activities[`"]?\.\*/', $sql);
+        }
     }
 
     public function test_table_views_have_complete_rows_and_hide_technical_source_identity(): void

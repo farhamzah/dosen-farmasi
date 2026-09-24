@@ -193,6 +193,22 @@ class CoreBridgeAuthTest extends TestCase
             ->assertSee('Foto Dosen Satu', false);
     }
 
+    public function test_core_user_photo_takes_precedence_over_lecturer_photo(): void
+    {
+        config(['dosen_farmasi.core.asset_base_url' => 'https://core.example.test']);
+        $this->seedCoreUser(photoPath: 'profile-photos/terbaru.jpg');
+        DB::connection('core_testing')->table('lecturers')->where('id', 10)
+            ->update(['profile_photo_url' => 'https://core.example.test/storage/profile-photos/lama.jpg']);
+
+        $this->post('/login', ['login' => 'dosen@example.test', 'password' => 'secret'])
+            ->assertRedirect('/dosen/dashboard');
+
+        $this->assertDatabaseHas('app_users', [
+            'core_user_id' => '1',
+            'photo_url' => 'https://core.example.test/storage/profile-photos/terbaru.jpg',
+        ]);
+    }
+
     private function seedCoreUser(bool $active = true, string|array $role = 'dosen', ?string $photoPath = null): void
     {
         DB::connection('core_testing')->table('users')->insert([

@@ -253,6 +253,7 @@ class TridharmaPortfolioService
     private function yearlySummary($baseQuery): Collection
     {
         return (clone $baseQuery)
+            ->select([])
             ->selectRaw("coalesce(academic_year, 'Tanpa tahun') as year_label, count(*) as aggregate")
             ->groupBy('year_label')
             ->orderByDesc('year_label')

@@ -4,7 +4,7 @@ return [
     'core' => [
         'app_code' => env('DOSEN_CORE_APP_CODE', 'dosen-farmasi'),
         'connection' => env('DOSEN_CORE_DB_CONNECTION', 'core_mysql'),
-        'asset_base_url' => env('DOSEN_CORE_ASSET_BASE_URL', env('CORE_APP_URL')),
+        'asset_base_url' => env('DOSEN_CORE_ASSET_BASE_URL') ?: env('CORE_APP_URL') ?: 'https://core.safaubp.com',
         'admin_core_user_ids' => array_values(array_filter(array_map(
             'trim',
             explode(',', (string) env('DOSEN_ADMIN_CORE_USER_IDS', ''))

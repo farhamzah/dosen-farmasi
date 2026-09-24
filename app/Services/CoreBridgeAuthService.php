@@ -298,7 +298,7 @@ class CoreBridgeAuthService
             'avatar',
         ];
 
-        foreach ([$lecturer ?? [], $coreUser] as $source) {
+        foreach ([$coreUser, $lecturer ?? []] as $source) {
             foreach ($candidateKeys as $key) {
                 $url = $this->normalizeCorePhotoUrl($source[$key] ?? null);
 
