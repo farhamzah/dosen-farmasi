@@ -17,6 +17,8 @@ class PortfolioParticipantResource extends Resource
 
     protected static ?string $navigationLabel = 'Peserta Portofolio';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Portofolio';
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

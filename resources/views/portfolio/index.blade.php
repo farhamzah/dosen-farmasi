@@ -24,12 +24,6 @@
             </x-ui.button>
             <x-ui.button :href="route('tridharma.index')" variant="secondary">Buka Tridharma</x-ui.button>
         </x-slot:actions>
-        <x-slot:aside>
-            <div class="grid grid-cols-2 gap-3">
-                <x-ui.stat label="Hasil" :value="$totalOnPage" caption="kegiatan" />
-                <x-ui.stat label="Filter" :value="$activeFilterCount" caption="aktif" tone="info" />
-            </div>
-        </x-slot:aside>
     </x-ui.page-header>
 
     <section class="df-card p-4">
@@ -38,14 +32,15 @@
             <input type="hidden" name="direction" value="{{ $currentDirection }}">
             <input type="hidden" name="view" value="{{ $viewMode }}">
             <input type="hidden" name="group" value="{{ $grouping }}">
-            <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]">
+            <div class="df-list-toolbar">
             <label class="relative block">
                 <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"><x-ui.icon name="search" class="h-4 w-4" /></span>
-                <input name="q" value="{{ request('q') }}" placeholder="Cari kegiatan, peran, atau deskripsi" class="df-field pl-10">
+                <input name="q" value="{{ request('q') }}" aria-label="Cari kegiatan" placeholder="Cari kegiatan, peran, atau deskripsi" class="df-field pl-10">
             </label>
-            <details class="relative">
-                <summary class="df-button df-button-secondary cursor-pointer list-none">Filter{{ $activeFilterCount ? ' ('.$activeFilterCount.')' : '' }}</summary>
-                <div class="absolute right-0 z-30 mt-2 w-[min(92vw,44rem)] rounded-[var(--radius-lg)] border border-[var(--border)] bg-white p-4 shadow-[var(--shadow-floating)]">
+            <div>
+                <button type="button" data-dialog-open="portfolio-filters" aria-haspopup="dialog" class="df-button df-button-secondary"><x-heroicon-o-adjustments-horizontal class="h-4 w-4" />Filter{{ $activeFilterCount ? ' ('.$activeFilterCount.')' : '' }}</button>
+                <dialog id="portfolio-filters" class="df-filter-dialog" aria-labelledby="portfolio-filter-title">
+                    <div class="df-dialog-heading"><h2 id="portfolio-filter-title" class="text-lg font-bold">Filter portofolio</h2><button type="button" class="df-menu-button" data-dialog-close aria-label="Tutup filter"><x-heroicon-o-x-mark class="h-5 w-5" /></button></div>
                     <div class="grid gap-3 sm:grid-cols-2">
                         <select name="category_id" class="df-field">
                             <option value="">Semua kategori</option>
@@ -81,8 +76,8 @@
                         <a href="{{ route('dosen.portfolio.index') }}" class="df-button df-button-secondary">Reset</a>
                         <button class="df-button df-button-primary">Terapkan</button>
                     </div>
-                </div>
-            </details>
+                </dialog>
+            </div>
             <select class="df-field w-full lg:w-48" aria-label="Urutkan" onchange="const [sort,direction]=this.value.split(':'); this.form.sort.value=sort; this.form.direction.value=direction; this.form.submit();">
                 @foreach($sortOptions as $value => $label)
                     <option value="{{ $value }}" @selected($sortValue === $value)>{{ $label }}</option>
@@ -93,10 +88,7 @@
                     <option value="{{ $size }}" @selected((int) request('per_page', 10) === $size)>{{ $size }}/hal</option>
                 @endforeach
             </select>
-            <div class="df-segmented w-full lg:w-auto" role="group" aria-label="Tampilan">
-                <a href="{{ route('dosen.portfolio.index', [...$queryWithoutView, 'view' => 'table']) }}" class="px-3 py-2 text-sm font-extrabold {{ $viewMode !== 'card' ? 'rounded-[var(--radius-sm)] bg-[var(--brand-900)] text-white' : 'text-[var(--text-secondary)]' }}">Tabel</a>
-                <a href="{{ route('dosen.portfolio.index', [...$queryWithoutView, 'view' => 'card']) }}" class="px-3 py-2 text-sm font-extrabold {{ $viewMode === 'card' ? 'rounded-[var(--radius-sm)] bg-[var(--brand-900)] text-white' : 'text-[var(--text-secondary)]' }}">Kartu</a>
-            </div>
+            <x-ui.view-switch :mode="$viewMode" :table-url="route('dosen.portfolio.index', [...$queryWithoutView, 'view' => 'table'])" :card-url="route('dosen.portfolio.index', [...$queryWithoutView, 'view' => 'card'])" />
             <div class="flex gap-2">
                 <a href="{{ route('dosen.portfolio.export', array_merge(request()->query(), ['format' => 'csv'])) }}" class="df-button df-button-secondary">CSV</a>
                 <a href="{{ route('dosen.portfolio.export', array_merge(request()->query(), ['format' => 'xls'])) }}" class="df-button df-button-secondary">Excel</a>
@@ -107,7 +99,7 @@
         @if($activeFilterCount)
             <div class="mt-4 flex flex-wrap gap-2">
                 @foreach(collect(request()->only($activeFilterKeys))->filter(fn ($value) => filled($value)) as $key => $value)
-                    <x-ui.filter-chip>{{ str($key)->replace('_', ' ')->title() }}: {{ $value }}</x-ui.filter-chip>
+                    <x-ui.filter-chip :href="route('dosen.portfolio.index', request()->except([$key, 'page']))" aria-label="Hapus filter {{ \App\Support\PortfolioUi::filterLabel($key) }}">{{ \App\Support\PortfolioUi::filterLabel($key) }}: {{ $key === 'category_id' ? ($categories->firstWhere('id', $value)?->name ?? 'Kategori') : \App\Support\PortfolioUi::filterValue($key, $value) }} <x-heroicon-o-x-mark class="h-3.5 w-3.5" /></x-ui.filter-chip>
                 @endforeach
             </div>
         @endif

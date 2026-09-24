@@ -18,6 +18,8 @@ class LecturerSnapshotResource extends Resource
 
     protected static ?string $navigationLabel = 'Data Dosen';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Profil Akademik';
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

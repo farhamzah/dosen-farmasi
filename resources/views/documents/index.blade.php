@@ -2,11 +2,6 @@
 
 @section('breadcrumb', 'Dokumen')
 
-@php
-    $documentCount = $documents->total();
-    $pendingCount = $documents->getCollection()->where('verification_status', 'PENDING')->count();
-    $verifiedCount = $documents->getCollection()->filter(fn ($document) => str_contains((string) $document->verification_status, 'VERIFIED'))->count();
-@endphp
 
 @section('content')
 <div class="space-y-6">
@@ -30,8 +25,13 @@
     </section>
 
     <section class="df-card overflow-hidden">
+        <form method="get" class="flex flex-wrap items-center gap-2 border-b border-[var(--border)] py-4">
+            <input type="search" name="q" value="{{ request('q') }}" aria-label="Cari dokumen" placeholder="Cari judul dokumen" class="df-field min-w-0 flex-1">
+            <button class="df-button df-button-secondary"><x-heroicon-o-magnifying-glass class="h-4 w-4" />Cari</button>
+            @if(request()->filled('q'))<a href="{{ route('dosen.documents.index') }}" class="df-text-link">Reset</a>@endif
+        </form>
         <div class="border-b border-[var(--border)] p-5">
-            <x-ui.section-header title="Arsip Terbaru" description="Dokumen diurutkan dari unggahan terbaru." />
+            <x-ui.section-header title="Arsip Terbaru" description="{{ $documents->total() }} dokumen ditemukan." />
         </div>
 
         <div class="divide-y divide-[var(--border)]">
@@ -48,7 +48,7 @@
                         <div class="min-w-0">
                             <div class="flex flex-wrap items-center gap-2">
                                 <p class="font-bold text-[var(--text-primary)]">{{ $document->title }}</p>
-                                <x-ui.badge :tone="$tone">{{ str($status)->replace('_', ' ')->title() }}</x-ui.badge>
+                                <x-ui.badge :tone="$tone">{{ \App\Support\PortfolioUi::statusLabel($status) }}</x-ui.badge>
                             </div>
                             <p class="mt-1 truncate text-sm font-semibold text-[var(--text-secondary)]">{{ $document->document_type }} - {{ $document->original_filename }}</p>
                             <p class="mt-1 text-xs font-semibold text-[var(--text-muted)]">{{ $document->issuer ?: 'Penerbit belum diisi' }} - {{ optional($document->document_date)->format('d M Y') ?: 'Tanggal belum diisi' }} - {{ str($document->visibility)->title() }}</p>
@@ -67,9 +67,13 @@
                 </div>
             @empty
                 <div class="p-5">
-                    <x-ui.empty-state title="Belum ada dokumen" description="Unggah dokumen pendukung agar portofolio lebih siap diverifikasi." icon="document">
+                    <x-ui.empty-state :title="request()->filled('q') ? 'Dokumen tidak ditemukan' : 'Belum ada dokumen'" :description="request()->filled('q') ? 'Tidak ada dokumen yang sesuai dengan pencarian Anda.' : 'Dokumen pendukung portofolio Anda akan tampil di sini.'" icon="document">
                         <x-slot:actions>
-                            <x-ui.button :href="route('dosen.documents.create')">Unggah Pertama</x-ui.button>
+                            @if(request()->filled('q'))
+                                <x-ui.button :href="route('dosen.documents.index')">Hapus pencarian</x-ui.button>
+                            @else
+                                <x-ui.button :href="route('dosen.documents.create')">Unggah dokumen</x-ui.button>
+                            @endif
                         </x-slot:actions>
                     </x-ui.empty-state>
                 </div>

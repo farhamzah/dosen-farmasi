@@ -18,6 +18,8 @@ class AppUserResource extends Resource
 
     protected static ?string $navigationLabel = 'Pengguna Aplikasi';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Sistem';
+
     protected static ?string $modelLabel = 'Pengguna Aplikasi';
 
     protected static ?string $pluralModelLabel = 'Pengguna Aplikasi';

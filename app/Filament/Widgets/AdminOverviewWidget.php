@@ -16,7 +16,7 @@ class AdminOverviewWidget extends StatsOverviewWidget
 
     protected ?string $heading = 'Ringkasan Operasional';
 
-    protected ?string $description = 'Validasi portofolio, integrasi, dokumen, dan issue report aktif.';
+    protected ?string $description = 'Portofolio, dokumen, dan laporan yang perlu ditindaklanjuti.';
 
     protected function getStats(): array
     {
@@ -33,10 +33,10 @@ class AdminOverviewWidget extends StatsOverviewWidget
             Stat::make('Perlu revisi', PortfolioActivity::query()->where('verification_status', 'REVISION_REQUIRED')->count())
                 ->description('Dikembalikan ke dosen')
                 ->color('warning'),
-            Stat::make('Issue report terbuka', PortfolioIssueReport::query()->whereIn('status', ['OPEN', 'IN_REVIEW'])->count())
+            Stat::make('Laporan data terbuka', PortfolioIssueReport::query()->whereIn('status', ['OPEN', 'IN_REVIEW'])->count())
                 ->description('Masih aktif')
                 ->color('danger'),
-            Stat::make('System verified', PortfolioActivity::query()->where('verification_status', 'SYSTEM_VERIFIED')->count())
+            Stat::make('Terverifikasi sistem', PortfolioActivity::query()->where('verification_status', 'SYSTEM_VERIFIED')->count())
                 ->description('Terverifikasi otomatis')
                 ->color('success'),
             Stat::make('Dokumen', Document::query()->count())

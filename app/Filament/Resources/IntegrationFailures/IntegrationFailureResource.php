@@ -18,6 +18,8 @@ class IntegrationFailureResource extends Resource
 
     protected static ?string $navigationLabel = 'Kegagalan Sinkronisasi';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Integrasi';
+
     protected static ?string $modelLabel = 'Kegagalan Sinkronisasi';
 
     protected static ?string $pluralModelLabel = 'Kegagalan Sinkronisasi';

@@ -12,12 +12,71 @@ use App\Models\LecturerExternalIdentifier;
 use App\Models\LecturerFunctionalPosition;
 use App\Models\PortfolioActivity;
 use App\Models\PortfolioCategory;
+use App\Services\TridharmaPortfolioService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class M8TridharmaProfileTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_summary_counts_sources_once_and_respects_search_filters(): void
+    {
+        $this->seed();
+        $user = $this->dosen();
+        $category = PortfolioCategory::query()->where('slug', 'penelitian-dan-pengembangan')->firstOrFail();
+        foreach (['MANUAL', 'SYSTEM'] as $source) {
+            PortfolioActivity::query()->create([
+                'lecturer_core_id' => $user->core_lecturer_id,
+                'category_id' => $category->id,
+                'activity_type' => 'penelitian',
+                'title' => 'Riset '.$source,
+                'source_type' => $source,
+                'source_app' => 'm8-ui-demo',
+                'verification_status' => 'DRAFT',
+                'visibility' => 'PRIVATE',
+                'academic_year' => '2026/2027',
+            ]);
+        }
+
+        $service = app(TridharmaPortfolioService::class);
+        $summary = $service->summary($user->core_lecturer_id, 'penelitian');
+        $this->assertSame(2, $summary['total']);
+        $this->assertSame(1, $summary['manual_count']);
+        $this->assertSame(1, $summary['system_count']);
+        $filtered = $service->summary($user->core_lecturer_id, 'penelitian', ['q' => 'MANUAL']);
+        $this->assertSame(1, $filtered['total']);
+        $this->assertSame(0, $filtered['system_count']);
+        $this->assertEquals(1, $filtered['yearly']['2026/2027']);
+    }
+
+    public function test_table_views_have_complete_rows_and_hide_technical_source_identity(): void
+    {
+        $this->seed();
+        $user = $this->dosen();
+        $category = PortfolioCategory::query()->where('slug', 'penelitian-dan-pengembangan')->firstOrFail();
+        foreach (['penelitian', 'publikasi-jurnal', 'hki-paten', 'buku'] as $type) {
+            PortfolioActivity::query()->create([
+                'lecturer_core_id' => $user->core_lecturer_id,
+                'category_id' => $category->id,
+                'activity_type' => $type,
+                'title' => 'Karya '.$type,
+                'source_type' => 'MANUAL',
+                'source_entity' => 'internal_source_table',
+                'source_record_id' => 'source-record-secret',
+                'verification_status' => 'DRAFT',
+                'visibility' => 'PRIVATE',
+            ]);
+            $response = $this->actingAs($user)->get(route('tridharma.domain', ['domain' => 'penelitian', 'subcategory' => $type, 'view' => 'table']))
+                ->assertOk()->assertSee('Karya '.$type)->assertDontSee('internal_source_table')->assertDontSee('source-record-secret');
+            $dom = new \DOMDocument;
+            @$dom->loadHTML($response->getContent());
+            $xpath = new \DOMXPath($dom);
+            $this->assertSame(1, $xpath->query('//table')->length);
+            $this->assertSame(1, $xpath->query('//table/tbody/tr')->length);
+            $this->assertSame($xpath->query('//table/thead/tr/th')->length, $xpath->query('//table/tbody/tr/td')->length);
+        }
+    }
 
     public function test_dosen_sees_own_tridharma_and_not_other_lecturer_activity(): void
     {
@@ -117,7 +176,7 @@ class M8TridharmaProfileTest extends TestCase
                 'graduation_status' => 'LULUS',
                 'document_id' => $document->id,
             ])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('profile.show').'#pendidikan');
 
         $education = LecturerEducation::query()->firstOrFail();
         $this->assertSame('PRIVATE', $education->visibility);
@@ -131,13 +190,13 @@ class M8TridharmaProfileTest extends TestCase
                 'graduation_status' => 'LULUS',
                 'visibility' => 'PUBLIC',
             ])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('profile.show').'#pendidikan');
 
         $this->assertSame('PUBLIC', $education->fresh()->visibility);
 
         $this->actingAs($user)
             ->delete(route('profile.educations.destroy', $education))
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('profile.show').'#pendidikan');
         $this->assertSoftDeleted($education);
     }
 
@@ -156,7 +215,7 @@ class M8TridharmaProfileTest extends TestCase
                 'graduation_status' => 'LULUS',
                 'visibility' => 'PUBLIC',
             ])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('profile.show').'#pendidikan');
 
         $education = LecturerEducation::query()->firstOrFail();
         $this->assertSame('PUBLIC', $education->visibility);
@@ -237,7 +296,7 @@ class M8TridharmaProfileTest extends TestCase
                 'public_profile_enabled' => '1',
                 'section_visibility' => ['education' => 'PUBLIC'],
             ])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('profile.show').'#visibilitas');
 
         $this->actingAs($user)
             ->get(route('profile.show'))
@@ -334,7 +393,7 @@ class M8TridharmaProfileTest extends TestCase
                 'profile_url' => 'https://sinta.kemdikbud.go.id/authors/profile/6719210',
                 'visibility' => 'PRIVATE',
             ])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('profile.show').'#identitas-ilmiah');
 
         $identifier = LecturerExternalIdentifier::query()->firstOrFail();
         $this->assertSame('PRIVATE', $identifier->visibility);
@@ -354,7 +413,7 @@ class M8TridharmaProfileTest extends TestCase
                 'profile_url' => 'https://sinta.kemdikbud.go.id/authors/profile/6719210',
                 'visibility' => 'PUBLIC',
             ])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('profile.show').'#identitas-ilmiah');
 
         $this->assertDatabaseHas('lecturer_external_identifiers', [
             'id' => $identifier->id,
@@ -364,7 +423,7 @@ class M8TridharmaProfileTest extends TestCase
 
         $this->actingAs($user)
             ->delete(route('profile.identifiers.destroy', $identifier))
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('profile.show').'#identitas-ilmiah');
 
         $this->assertSoftDeleted($identifier);
     }
@@ -457,8 +516,7 @@ class M8TridharmaProfileTest extends TestCase
         $this->actingAs($user)
             ->get(route('tridharma.index'))
             ->assertOk()
-            ->assertSee('Perjalanan Tridharma Semester Ini')
-            ->assertSee('Kelengkapan Tridharma')
+            ->assertSee('Portofolio Tridharma')
             ->assertSee('Belum ada kegiatan pada periode ini')
             ->assertSee('Filter')
             ->assertSee('Sumber Otomatis');

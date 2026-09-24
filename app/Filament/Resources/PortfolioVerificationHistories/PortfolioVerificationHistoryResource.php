@@ -17,6 +17,8 @@ class PortfolioVerificationHistoryResource extends Resource
 
     protected static ?string $navigationLabel = 'Riwayat Verifikasi';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Portofolio';
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

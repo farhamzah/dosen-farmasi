@@ -20,6 +20,8 @@ class PortfolioCategoryResource extends Resource
 
     protected static ?string $navigationLabel = 'Kategori Portofolio';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Portofolio';
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

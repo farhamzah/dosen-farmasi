@@ -104,7 +104,7 @@
             <p class="text-xs leading-5 text-[var(--text-muted)]">Data manual dosen langsung tercatat. Data dari integrasi resmi ditandai otomatis oleh sistem.</p>
             <div class="grid gap-2 sm:grid-cols-[1fr_auto]">
                 <button class="df-button df-button-primary">Simpan Perubahan</button>
-                <button type="submit" form="delete-education-{{ $education->id }}" class="df-button df-button-secondary" onclick="return confirm('Hapus riwayat pendidikan ini?')">Hapus</button>
+                <button type="submit" form="delete-education-{{ $education->id }}" class="df-button df-button-secondary text-rose-700">Hapus</button>
             </div>
         </form>
         <form id="delete-education-{{ $education->id }}" method="post" action="{{ route('profile.educations.destroy', $education) }}" class="hidden">

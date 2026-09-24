@@ -17,6 +17,8 @@ class PortfolioIssueReportResource extends Resource
 
     protected static ?string $navigationLabel = 'Laporan Kesalahan Data';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Portofolio';
+
     protected static ?string $modelLabel = 'Laporan Kesalahan Data';
 
     protected static ?string $pluralModelLabel = 'Laporan Kesalahan Data';

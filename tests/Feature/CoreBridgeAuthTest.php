@@ -73,7 +73,7 @@ class CoreBridgeAuthTest extends TestCase
 
         $this->assertAuthenticated();
         $this->get(route('dosen.dashboard'))->assertRedirect(route('role.select'));
-        $this->get(route('role.select'))->assertOk()->assertSee('Masuk sebagai apa?')->assertSee('Admin')->assertSee('Dosen');
+        $this->get(route('role.select'))->assertOk()->assertSee('Pilih ruang kerja')->assertSee('Admin')->assertSee('Dosen');
 
         $this->post(route('role.store'), ['role' => 'admin'])
             ->assertRedirect(route('filament.admin.pages.admin-dashboard'));

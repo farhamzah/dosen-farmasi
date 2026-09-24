@@ -1,7 +1,8 @@
 @php
     $user = auth()->user();
     $isAuthLayout = $authLayout ?? false;
-    $academicPeriod = now()->year.'/'.(now()->year + 1).' - '.(now()->month >= 8 || now()->month <= 1 ? 'Ganjil' : 'Genap');
+    $academicYear = now()->month >= 8 ? now()->year : now()->year - 1;
+    $academicPeriod = $academicYear.'/'.($academicYear + 1).' - '.(now()->month >= 8 || now()->month <= 1 ? 'Ganjil' : 'Genap');
     $unreadInbox = 0;
     $upcomingAgenda = 0;
     $availableRoles = array_values(array_filter((array) session('dosen_farmasi.available_roles', $user ? [$user->role] : [])));
@@ -62,7 +63,7 @@
     </a>
 
     @if($isAuthLayout)
-        <main class="min-h-screen bg-[linear-gradient(135deg,#eef4fb_0%,#fbfcff_48%,#fff8ee_100%)]">
+        <main class="min-h-screen bg-[var(--surface)]">
             @yield('content')
         </main>
     @else
@@ -77,7 +78,7 @@
                         </span>
                     </a>
 
-                    <div class="mt-5 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[linear-gradient(135deg,#ffffff,#f4f7fb)] p-3 shadow-sm">
+                    <div class="mt-4 border-y border-[var(--border)] px-2 py-4">
                         <div class="flex items-center gap-3">
                             <x-ui.avatar :name="$user->name" :src="$user->photo_url" size="h-12 w-12" class="rounded-[var(--radius-md)] shadow-sm" />
                             <div class="min-w-0">
@@ -95,14 +96,14 @@
                         </div>
                     </div>
 
-                    <nav class="scrollbar-none mt-7 flex-1 space-y-5 overflow-y-auto pr-1" aria-label="Navigasi utama">
+                    <nav class="mt-4 flex-1 space-y-4 overflow-y-auto pr-1" aria-label="Navigasi utama">
                         @foreach($navGroups as $group => $items)
                             <div>
                                 <p class="px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">{{ $group }}</p>
                                 <div class="mt-2 space-y-1">
                                     @foreach($items as $item)
                                         <a href="{{ $item['href'] }}" class="df-nav-link" aria-current="{{ $item['active'] ? 'page' : 'false' }}">
-                                            <span class="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-sm)] bg-white text-[var(--brand-700)] ring-1 ring-[var(--border)]">
+                                            <span class="grid h-6 w-6 shrink-0 place-items-center text-[var(--brand-700)]">
                                                 <x-ui.icon :name="$item['icon']" class="h-4 w-4" />
                                             </span>
                                             <span class="min-w-0 flex-1 truncate">{{ $item['label'] }}</span>
@@ -130,6 +131,9 @@
             <div class="min-w-0 flex-1">
                 <header class="df-topbar sticky top-0 z-30">
                     <div class="mx-auto flex max-w-[1440px] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+                        @auth
+                            <button type="button" class="df-menu-button lg:hidden" data-dialog-open="mobile-navigation" aria-label="Buka semua menu" aria-haspopup="dialog"><x-heroicon-o-bars-3 class="h-5 w-5" /></button>
+                        @endauth
                         <a href="{{ auth()->check() ? route('dosen.dashboard') : route('login') }}" class="flex min-w-0 flex-1 items-center gap-3 lg:hidden">
                             <img src="{{ asset('images/logo-fakultas-farmasi-ubp.png') }}" alt="Logo Fakultas Farmasi UBP" class="h-10 w-10 shrink-0 rounded-[var(--radius-sm)] bg-white object-contain p-1 ring-1 ring-[var(--border)]">
                             <span class="min-w-0">
@@ -146,7 +150,7 @@
                         @auth
                             <form method="get" action="{{ route('dosen.portfolio.index') }}" class="hidden w-full max-w-xs xl:block">
                                 <label for="global-search" class="sr-only">Cari portofolio</label>
-                                <input id="global-search" name="q" class="df-field" placeholder="Cari aktivitas atau dokumen" value="{{ request('q') }}">
+                                <input id="global-search" name="q" class="df-field" placeholder="Cari portofolio" value="{{ request('q') }}">
                             </form>
 
                             <div class="hidden items-center gap-2 md:flex">
@@ -194,15 +198,32 @@
                 </main>
 
                 @auth
-                    @if($canSwitchRole)
-                        <a href="{{ route('role.select') }}" class="fixed bottom-[5.35rem] right-4 z-40 inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--brand-900)] px-4 text-sm font-bold text-white shadow-[var(--shadow-floating)] lg:hidden">
-                            Ganti Peran
-                        </a>
-                    @endif
+                    <dialog id="mobile-navigation" class="df-navigation-dialog" aria-labelledby="mobile-menu-title">
+                        <div class="flex items-center justify-between border-b border-[var(--border)] p-4"><h2 id="mobile-menu-title" class="font-bold">Menu Dosen Farmasi</h2><button type="button" class="df-menu-button" data-dialog-close aria-label="Tutup menu"><x-heroicon-o-x-mark class="h-5 w-5" /></button></div>
+                        <div class="p-4">
+                            <p class="break-words font-semibold">{{ $user->name }}</p><p class="mt-1 text-xs text-[var(--text-secondary)]">{{ $roleLabel }}</p>
+                            <nav class="mt-4 space-y-4" aria-label="Semua menu">
+                                @foreach($navGroups as $group => $items)
+                                    <div><p class="mb-1 px-3 text-xs text-[var(--text-muted)]">{{ $group }}</p>@foreach($items as $item)<a class="df-nav-link" href="{{ $item['href'] }}" aria-current="{{ $item['active'] ? 'page' : 'false' }}"><x-ui.icon :name="$item['icon']" /><span>{{ $item['label'] }}</span></a>@endforeach</div>
+                                @endforeach
+                            </nav>
+                            @if($canSwitchRole)<a href="{{ route('role.select') }}" class="df-button df-button-secondary mt-5 w-full"><x-heroicon-o-arrows-right-left class="h-4 w-4" />Ganti Peran</a>@endif
+                            <form method="post" action="{{ route('logout') }}" class="mt-2">@csrf<button class="df-button w-full text-rose-700">Keluar</button></form>
+                        </div>
+                    </dialog>
                     <x-ui.mobile-bottom-nav :items="$bottomNav" />
                 @endauth
             </div>
         </div>
+    @endif
+    <dialog id="delete-confirmation" class="df-confirm-dialog" aria-labelledby="delete-title" aria-describedby="delete-description">
+        <h2 id="delete-title" class="text-lg font-bold">Hapus data ini?</h2>
+        <p id="delete-description" class="mt-2 text-sm text-[var(--text-secondary)]">Pastikan data yang dipilih sudah tidak diperlukan.</p>
+        <div class="mt-6 flex justify-end gap-2"><button type="button" class="df-button df-button-secondary" data-dialog-close>Batal</button><button type="button" class="df-button bg-rose-700 text-white" data-confirm-delete>Hapus data</button></div>
+    </dialog>
+    @if($errors->any() && old('_form_key'))
+        @php($formRecovery = ['key' => old('_form_key'), 'values' => collect(old())->except(['_token', 'password', 'password_confirmation'])->all(), 'errors' => $errors->messages()])
+        <script type="application/json" id="form-recovery">@json($formRecovery)</script>
     @endif
 </body>
 </html>

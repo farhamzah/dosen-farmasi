@@ -20,6 +20,8 @@ class IntegrationEventResource extends Resource
 
     protected static ?string $navigationLabel = 'Event Integrasi';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Integrasi';
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

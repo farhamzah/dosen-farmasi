@@ -17,6 +17,8 @@ class DocumentResource extends Resource
 
     protected static ?string $navigationLabel = 'Dokumen';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Dokumen';
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

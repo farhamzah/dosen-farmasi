@@ -21,6 +21,8 @@ class IntegrationClientResource extends Resource
 
     protected static ?string $navigationLabel = 'Aplikasi Terhubung';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Integrasi';
+
     protected static ?string $modelLabel = 'Aplikasi Terhubung';
 
     protected static ?string $pluralModelLabel = 'Aplikasi Terhubung';

@@ -76,7 +76,7 @@ class ProfileController extends Controller
             $document->update(['visibility' => 'PRIVATE']);
         }
 
-        return redirect()->route('profile.show')->with('status', 'Riwayat pendidikan ditambahkan.');
+        return redirect()->to(route('profile.show').'#pendidikan')->with('status', 'Riwayat pendidikan ditambahkan.');
     }
 
     public function updateEducation(Request $request, LecturerEducation $education)
@@ -97,7 +97,7 @@ class ProfileController extends Controller
             $document->update(['visibility' => 'PRIVATE']);
         }
 
-        return redirect()->route('profile.show')->with('status', 'Riwayat pendidikan diperbarui.');
+        return redirect()->to(route('profile.show').'#pendidikan')->with('status', 'Riwayat pendidikan diperbarui.');
     }
 
     public function destroyEducation(Request $request, LecturerEducation $education)
@@ -106,7 +106,7 @@ class ProfileController extends Controller
 
         $education->delete();
 
-        return redirect()->route('profile.show')->with('status', 'Riwayat pendidikan dihapus.');
+        return redirect()->to(route('profile.show').'#pendidikan')->with('status', 'Riwayat pendidikan dihapus.');
     }
 
     public function storeIdentifier(Request $request)
@@ -125,7 +125,7 @@ class ProfileController extends Controller
             ],
         );
 
-        return redirect()->route('profile.show')->with('status', 'Identitas ilmiah diperbarui.');
+        return redirect()->to(route('profile.show').'#identitas-ilmiah')->with('status', 'Identitas ilmiah diperbarui.');
     }
 
     public function updateIdentifier(Request $request, LecturerExternalIdentifier $identifier)
@@ -139,7 +139,7 @@ class ProfileController extends Controller
             'source_type' => 'MANUAL',
         ]);
 
-        return redirect()->route('profile.show')->with('status', 'Identitas ilmiah diperbarui.');
+        return redirect()->to(route('profile.show').'#identitas-ilmiah')->with('status', 'Identitas ilmiah diperbarui.');
     }
 
     public function destroyIdentifier(Request $request, LecturerExternalIdentifier $identifier)
@@ -148,7 +148,7 @@ class ProfileController extends Controller
 
         $identifier->delete();
 
-        return redirect()->route('profile.show')->with('status', 'Identitas ilmiah dihapus.');
+        return redirect()->to(route('profile.show').'#identitas-ilmiah')->with('status', 'Identitas ilmiah dihapus.');
     }
 
     public function updateVisibility(Request $request)
@@ -173,7 +173,7 @@ class ProfileController extends Controller
             ],
         );
 
-        return redirect()->route('profile.show')->with('status', 'Pengaturan visibilitas disimpan.');
+        return redirect()->to(route('profile.show').'#visibilitas')->with('status', 'Pengaturan visibilitas disimpan.');
     }
 
     public function publicProfile(Request $request, string $lecturerCoreId)

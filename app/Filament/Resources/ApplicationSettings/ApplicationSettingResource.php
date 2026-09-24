@@ -17,6 +17,8 @@ class ApplicationSettingResource extends Resource
 
     protected static ?string $navigationLabel = 'Pengaturan';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Sistem';
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

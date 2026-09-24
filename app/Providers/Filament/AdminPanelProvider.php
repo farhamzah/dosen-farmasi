@@ -32,9 +32,10 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('2.5rem')
             ->darkMode(false)
             ->sidebarCollapsibleOnDesktop()
+            ->navigationGroups(['Portofolio', 'Dokumen', 'Profil Akademik', 'Integrasi', 'Sistem'])
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::Emerald,
                 'success' => Color::Emerald,
                 'warning' => Color::Amber,
                 'danger' => Color::Rose,

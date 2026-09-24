@@ -63,7 +63,7 @@
             </label>
             <div class="grid gap-2 sm:grid-cols-[1fr_auto]">
                 <button class="df-button df-button-primary">Simpan Perubahan</button>
-                <button type="submit" form="delete-identifier-{{ $identifier->id }}" class="df-button df-button-secondary" onclick="return confirm('Hapus identitas ilmiah ini?')">Hapus</button>
+                <button type="submit" form="delete-identifier-{{ $identifier->id }}" class="df-button df-button-secondary text-rose-700">Hapus</button>
             </div>
         </form>
         <form id="delete-identifier-{{ $identifier->id }}" method="post" action="{{ route('profile.identifiers.destroy', $identifier) }}" class="hidden">

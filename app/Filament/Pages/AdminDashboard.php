@@ -15,7 +15,7 @@ class AdminDashboard extends Dashboard
 
     public function getSubheading(): string|Htmlable|null
     {
-        return 'Dashboard dan panel administrasi Dosen Farmasi berada di satu tempat.';
+        return 'Ringkasan portofolio dan tindak lanjut administrasi.';
     }
 
     public function getWidgets(): array

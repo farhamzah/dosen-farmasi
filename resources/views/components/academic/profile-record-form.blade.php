@@ -97,7 +97,7 @@
     <div class="df-profile-record-full flex flex-wrap gap-2">
         <button class="df-button df-button-primary">{{ $editing ? 'Simpan perubahan' : 'Simpan '.$label }}</button>
         @if($editing)
-            <button type="submit" form="{{ $deleteFormId }}" class="df-button df-button-secondary" onclick="return confirm('Hapus {{ $label }} ini?')">Hapus</button>
+            <button type="submit" form="{{ $deleteFormId }}" class="df-button df-button-secondary text-rose-700">Hapus</button>
         @endif
     </div>
 </form>

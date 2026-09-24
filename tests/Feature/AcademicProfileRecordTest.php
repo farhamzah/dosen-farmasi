@@ -44,7 +44,7 @@ class AcademicProfileRecordTest extends TestCase
             ->assertOk()
             ->assertSee('Edit kepakaran dan visibilitas')
             ->assertSee('Edit sertifikasi dan visibilitas')
-            ->assertSee('Pratinjau CV');
+            ->assertSee('Pilih template CV');
 
         $this->post(route('profile.visibility.update'), [
             'section_visibility' => ['expertise' => 'PUBLIC'],

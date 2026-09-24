@@ -24,7 +24,14 @@ class DocumentController extends Controller
             $query->where('lecturer_core_id', $request->user()->core_lecturer_id);
         }
 
-        return view('documents.index', ['documents' => $query->paginate(10)]);
+        $counts = [
+            'documentCount' => (clone $query)->count(),
+            'pendingCount' => (clone $query)->where('verification_status', 'PENDING')->count(),
+            'verifiedCount' => (clone $query)->whereIn('verification_status', ['VERIFIED', 'ADMIN_VERIFIED', 'SYSTEM_VERIFIED'])->count(),
+        ];
+        $query->when($request->filled('q'), fn ($query) => $query->where('title', 'like', '%'.$request->string('q')->trim().'%'));
+
+        return view('documents.index', [...$counts, 'documents' => $query->paginate(10)->withQueryString()]);
     }
 
     public function create()

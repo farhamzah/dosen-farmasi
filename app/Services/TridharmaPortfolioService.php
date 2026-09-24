@@ -95,18 +95,7 @@ class TridharmaPortfolioService
         abort_if(! $domain, 404);
 
         $category = PortfolioCategory::query()->where('slug', $domain['category_slug'])->first();
-        $baseQuery = PortfolioActivity::query()
-            ->with('category')
-            ->where('lecturer_core_id', $lecturerCoreId)
-            ->when($category, fn ($query) => $query->where('category_id', $category->id))
-            ->when(! $category, fn ($query) => $query->whereRaw('1 = 0'));
-
-        $filteredQuery = (clone $baseQuery)
-            ->when($filters['year'] ?? null, fn ($query, $year) => $query->where('academic_year', $year))
-            ->when($filters['semester'] ?? null, fn ($query, $semester) => $query->where('semester', $semester))
-            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('verification_status', $status))
-            ->when($filters['source'] ?? null, fn ($query, $source) => $query->where('source_type', $source))
-            ->when($filters['subcategory'] ?? null, fn ($query, $subcategory) => $query->where('activity_type', Str::slug($subcategory)));
+        $filteredQuery = $this->activityQuery(new Request($filters), $lecturerCoreId, $domainKey);
 
         $latest = (clone $filteredQuery)->latest()->limit(6)->get();
         $verifiedStatuses = ['ADMIN_VERIFIED', 'SYSTEM_VERIFIED'];
@@ -118,13 +107,13 @@ class TridharmaPortfolioService
             'total' => (clone $filteredQuery)->count(),
             'verified' => (clone $filteredQuery)->whereIn('verification_status', $verifiedStatuses)->count(),
             'needs_completion' => (clone $filteredQuery)->whereIn('verification_status', ['DRAFT', 'REVISION_REQUIRED'])->count(),
-            'system_count' => (clone $filteredQuery)->where(fn ($query) => $query->where('source_type', 'SYSTEM')->orWhereNotNull('source_app'))->count(),
+            'system_count' => (clone $filteredQuery)->where('source_type', 'SYSTEM')->count(),
             'manual_count' => (clone $filteredQuery)->where('source_type', 'MANUAL')->count(),
             'latest' => $latest,
             'needs_items' => (clone $filteredQuery)->whereIn('verification_status', ['DRAFT', 'REVISION_REQUIRED'])->latest()->limit(5)->get(),
-            'system_items' => (clone $filteredQuery)->where(fn ($query) => $query->where('source_type', 'SYSTEM')->orWhereNotNull('source_app'))->latest()->limit(5)->get(),
+            'system_items' => (clone $filteredQuery)->where('source_type', 'SYSTEM')->latest()->limit(5)->get(),
             'manual_items' => (clone $filteredQuery)->where('source_type', 'MANUAL')->latest()->limit(5)->get(),
-            'yearly' => $this->yearlySummary($baseQuery),
+            'yearly' => $this->yearlySummary($filteredQuery),
             'active_period' => $this->activePeriod($latest),
         ];
     }

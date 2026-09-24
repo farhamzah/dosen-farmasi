@@ -8,13 +8,42 @@ use Illuminate\Support\Str;
 
 class PortfolioUi
 {
+    public static function filterLabel(string $key): string
+    {
+        return match ($key) {
+            'q' => 'Pencarian', 'category_id' => 'Kategori', 'status' => 'Status',
+            'year', 'academic_year' => 'Tahun akademik', 'semester' => 'Semester',
+            'source', 'source_type' => 'Sumber', 'visibility' => 'Visibilitas',
+            'date_from' => 'Dari tanggal', 'date_to' => 'Sampai tanggal',
+            'role' => 'Peran', 'subcategory' => 'Subkategori',
+            default => 'Filter',
+        };
+    }
+
+    public static function filterValue(string $key, string $value): string
+    {
+        if (in_array($key, ['q', 'date_from', 'date_to', 'academic_year', 'year'], true)) {
+            return $value;
+        }
+
+        if ($key === 'status') {
+            return self::statusLabel($value);
+        }
+
+        return match ($value) {
+            'PRIVATE' => 'Pribadi', 'INTERNAL' => 'Internal', 'PUBLIC' => 'Publik',
+            'MANUAL' => 'Input Mandiri', 'SYSTEM' => 'Sistem Terhubung',
+            default => Str::of($value)->replace('-', ' ')->toString(),
+        };
+    }
+
     public static function statusLabel(?string $status): string
     {
         return match ($status) {
             'DRAFT' => 'Draft',
-            'SUBMITTED' => 'Menunggu Verifikasi',
+            'SUBMITTED', 'PENDING' => 'Menunggu Verifikasi',
             'REVISION_REQUIRED' => 'Perlu Revisi',
-            'ADMIN_VERIFIED' => 'Terverifikasi',
+            'ADMIN_VERIFIED', 'VERIFIED' => 'Terverifikasi',
             'SYSTEM_VERIFIED' => 'Terverifikasi Sistem',
             'REJECTED' => 'Ditolak',
             'CANCELLED' => 'Dibatalkan',

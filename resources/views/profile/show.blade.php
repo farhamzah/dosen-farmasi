@@ -7,8 +7,6 @@
     $higherEducations = $educations->reject(fn ($education) => in_array($education->level, $basicLevels, true));
     $basicEducations = $educations->filter(fn ($education) => in_array($education->level, $basicLevels, true));
     $activeFunctional = $functionalPositions->firstWhere('is_active', true) ?? $functionalPositions->first();
-    $milestones = ['S1', 'Profesi', 'S2', 'S3'];
-    $completedMilestones = $educations->pluck('level')->all();
 @endphp
 
 @section('content')
@@ -34,11 +32,7 @@
         <div class="flex flex-wrap gap-2">
             <a href="#tambah-pendidikan" class="df-button df-button-secondary">Tambah pendidikan</a>
             <a href="#visibilitas" class="df-button df-button-secondary">Atur visibilitas</a>
-            @if($visibilitySetting->public_profile_enabled)
-                <a href="{{ route('profile.public', $user->core_lecturer_id) }}" class="df-button df-button-primary">Lihat CV publik</a>
-            @else
-                <a href="{{ route('profile.preview') }}" class="df-button df-button-primary">Pratinjau CV</a>
-            @endif
+            <a href="#profil-publik" class="df-button df-button-primary"><x-heroicon-o-document-text class="h-4 w-4" />Pilih template CV</a>
         </div>
     </div>
 
@@ -50,16 +44,16 @@
             'keilmuan' => 'Keilmuan',
             'sertifikasi' => 'Sertifikasi',
             'identitas-ilmiah' => 'Identitas Ilmiah',
-            'profil-publik' => 'CV Publik',
+            'profil-publik' => 'CV Saya',
             'visibilitas' => 'Visibilitas',
         ] as $anchor => $label)
             <a href="#{{ $anchor }}" class="shrink-0 rounded-[var(--radius-sm)] px-4 py-2.5 text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--brand-50)] hover:text-[var(--brand-800)]">{{ $label }}</a>
         @endforeach
     </nav>
 
-    <section id="ringkasan" class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <div class="min-w-0 space-y-6">
-            <div class="df-profile-summary">
+    <section class="df-profile-layout">
+        <div class="df-profile-main">
+            <div id="ringkasan" data-profile-panel="ringkasan" class="df-profile-summary">
                 <div class="df-profile-summary-heading">
                     <div>
                         <p class="df-profile-eyebrow">Ringkasan</p>
@@ -73,9 +67,15 @@
                     <div><dt>Bidang utama</dt><dd>{{ $expertiseAreas->first()?->primary_expertise ?: 'Belum diisi' }}</dd></div>
                     <div><dt>Identitas ilmiah</dt><dd>{{ $identifiers->count() }} terhubung</dd></div>
                 </dl>
+                <div class="df-profile-next">
+                    <a href="#pendidikan" class="df-quick-link"><x-ui.icon name="tridharma" /><span>Kelola riwayat pendidikan</span><x-heroicon-o-chevron-right class="h-4 w-4" /></a>
+                    <a href="#karier" class="df-quick-link"><x-ui.icon name="portfolio" /><span>Kelola karier dan jabatan</span><x-heroicon-o-chevron-right class="h-4 w-4" /></a>
+                    <a href="#keilmuan" class="df-quick-link"><x-heroicon-o-beaker class="h-5 w-5" /><span>Kelola bidang kepakaran</span><x-heroicon-o-chevron-right class="h-4 w-4" /></a>
+                    <a href="#profil-publik" class="df-quick-link"><x-ui.icon name="document" /><span>Pilih dan cetak CV</span><x-heroicon-o-chevron-right class="h-4 w-4" /></a>
+                </div>
             </div>
 
-            <x-ui.card id="pendidikan" class="p-5 sm:p-6">
+            <x-ui.card id="pendidikan" data-profile-panel="pendidikan" class="df-profile-panel">
                 <x-ui.section-header
                     eyebrow="Pendidikan"
                     title="Riwayat Pendidikan"
@@ -85,18 +85,6 @@
                         <a href="#tambah-pendidikan" class="df-button df-button-secondary">Tambah pendidikan</a>
                     </x-slot:actions>
                 </x-ui.section-header>
-
-                <div class="mt-5 rounded-[var(--radius-lg)] bg-[var(--surface-muted)]/70 p-4">
-                    <div class="grid gap-3 sm:grid-cols-4">
-                        @foreach($milestones as $milestone)
-                            @php($done = in_array($milestone, $completedMilestones, true))
-                            <div class="rounded-[var(--radius-md)] border {{ $done ? 'border-emerald-100 bg-emerald-50 text-emerald-900' : 'border-dashed border-[var(--border)] bg-white text-[var(--text-muted)]' }} p-3 text-center">
-                                <p class="text-lg font-black">{{ $milestone }}</p>
-                                <p class="mt-1 text-xs font-bold">{{ $done ? 'Tercatat' : 'Belum tercatat' }}</p>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
 
                 <div class="mt-6">
                     @if($higherEducations->isNotEmpty())
@@ -165,14 +153,14 @@
                 </details>
             </x-ui.card>
 
-            <x-ui.card id="karier" class="p-5 sm:p-6">
+            <x-ui.card id="karier" data-profile-panel="karier" class="df-profile-panel">
                 <x-ui.section-header
                     eyebrow="Karier"
                     title="Karier dan Jabatan"
                     description="Lihat posisi aktif, progres jabatan fungsional, dan tugas tambahan dalam satu alur."
                 />
 
-                <div class="mt-5 rounded-[var(--radius-lg)] bg-[linear-gradient(135deg,var(--brand-50),white)] p-5 ring-1 ring-[var(--border)]">
+                <div class="mt-5 border-l-2 border-[var(--brand-600)] bg-[var(--brand-50)] p-4">
                     <p class="text-xs font-bold uppercase text-[var(--brand-700)]">Jabatan Fungsional Aktif</p>
                     <h3 class="mt-2 text-2xl font-black text-[var(--text-primary)]">{{ $activeFunctional?->position_name ?: 'Belum dicatat' }}</h3>
                     <p class="mt-2 text-sm font-semibold text-[var(--text-secondary)]">TMT {{ optional($activeFunctional?->effective_date)->format('d M Y') ?: 'belum diisi' }} · KUM {{ $activeFunctional?->credit_score ?: '-' }}</p>
@@ -225,7 +213,7 @@
                 </div>
             </x-ui.card>
 
-            <x-ui.card id="keilmuan" class="p-5 sm:p-6">
+            <x-ui.card id="keilmuan" data-profile-panel="keilmuan" class="df-profile-panel">
                 <x-ui.section-header
                     eyebrow="Keilmuan"
                     title="Bidang Kepakaran"
@@ -254,7 +242,7 @@
                 <details id="tambah-kepakaran" class="df-profile-add-form mt-5"><summary>Tambah bidang kepakaran <span aria-hidden="true">+</span></summary><x-academic.profile-record-form kind="expertise" /></details>
             </x-ui.card>
 
-            <x-ui.card class="p-5 sm:p-6">
+            <x-ui.card data-profile-panel="ringkasan" class="df-profile-panel">
                 <x-ui.section-header title="Aktivitas Akademik Terkini" description="Portofolio terakhir yang ikut membentuk profil akademik." />
                 <div class="mt-5 space-y-3">
                     @forelse($recentAcademicActivities as $activity)
@@ -266,8 +254,8 @@
             </x-ui.card>
         </div>
 
-        <aside class="min-w-0 space-y-5">
-            <x-ui.card id="profil-publik" class="overflow-hidden">
+        <aside class="df-profile-aside">
+            <x-ui.card id="profil-publik" data-profile-panel="profil-publik" class="df-profile-panel">
                 <div class="border-b border-[var(--border)] p-5">
                     <p class="df-profile-eyebrow">CV dan Portofolio</p>
                     <h2 class="mt-1 text-lg font-bold text-[var(--text-primary)]">Pilih tampilan CV</h2>
@@ -275,11 +263,13 @@
                 </div>
                 <div class="space-y-4 p-5">
                     <p class="text-xs font-semibold text-[var(--text-muted)]">{{ $visibilitySetting->public_profile_enabled ? 'Lihat CV yang dapat dibagikan' : 'Pratinjau pribadi · belum dibagikan' }}</p>
-                    <div class="space-y-2">
+                    <div class="df-template-grid">
                         @foreach($cvTemplates as $template => $option)
                             <a href="{{ $visibilitySetting->public_profile_enabled ? route('profile.public', ['lecturerCoreId' => $user->core_lecturer_id, 'template' => $template]) : route('profile.preview', ['template' => $template]) }}" class="df-profile-template-option">
+                                <span class="df-template-preview df-template-{{ $template }}" aria-hidden="true"><span class="df-template-paper"><strong>{{ $user->name }}</strong><span>Profil Akademik</span><i></i><i></i><i></i><span>Pendidikan dan karya ilmiah</span><i></i><i></i></span></span>
                                 <span class="block font-bold text-[var(--text-primary)]">{{ $option['label'] }}</span>
                                 <span class="mt-1 block text-xs leading-5 text-[var(--text-secondary)]">{{ $option['description'] }}</span>
+                                <span class="mt-4 flex items-center gap-2 text-sm font-semibold text-[var(--brand-700)]">Pratinjau <x-heroicon-o-arrow-right class="h-4 w-4" /></span>
                             </a>
                         @endforeach
                     </div>
@@ -289,9 +279,7 @@
                 </div>
             </x-ui.card>
 
-            <x-academic.profile-completeness :completeness="$completeness" />
-
-            <x-ui.card id="visibilitas" class="p-5">
+            <x-ui.card id="visibilitas" data-profile-panel="visibilitas" class="df-profile-panel">
                 <x-ui.section-header title="Visibilitas Profil" description="Atur bagian mana yang boleh tampil untuk publik." />
                 <p class="mt-3 text-xs leading-5 text-[var(--text-secondary)]">Bagian dan itemnya harus sama-sama dipilih Public agar muncul di CV yang dibagikan. Pratinjau pribadi tetap tersedia sebelum profil publik diaktifkan.</p>
                 <form method="post" action="{{ route('profile.visibility.update') }}" class="mt-5 space-y-4">
@@ -315,7 +303,7 @@
                 </form>
             </x-ui.card>
 
-            <x-ui.card id="identitas-ilmiah" class="p-5">
+            <x-ui.card id="identitas-ilmiah" data-profile-panel="identitas-ilmiah" class="df-profile-panel">
                 <x-ui.section-header title="Identitas Ilmiah" description="Akun akademik yang terhubung dengan profil, CV, dan portofolio otomatis Anda." />
                 <div class="mt-5 space-y-3">
                     @forelse($identifiers as $identifier)
@@ -359,7 +347,7 @@
                 </form>
             </x-ui.card>
 
-            <x-ui.card id="sertifikasi" class="p-5">
+            <x-ui.card id="sertifikasi" data-profile-panel="sertifikasi" class="df-profile-panel">
                 <x-ui.section-header title="Sertifikasi" description="Sertifikasi akademik dan profesi yang tercatat." />
                 <div class="mt-5 space-y-3">
                     @forelse($certifications as $certification)

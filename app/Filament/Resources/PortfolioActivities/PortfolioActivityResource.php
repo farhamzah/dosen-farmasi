@@ -20,6 +20,8 @@ class PortfolioActivityResource extends Resource
 
     protected static ?string $navigationLabel = 'Kegiatan Portofolio';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Portofolio';
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

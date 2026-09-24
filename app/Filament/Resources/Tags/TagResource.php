@@ -17,6 +17,8 @@ class TagResource extends Resource
 
     protected static ?string $navigationLabel = 'Tag';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Portofolio';
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

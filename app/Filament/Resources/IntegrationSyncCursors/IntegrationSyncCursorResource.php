@@ -17,6 +17,8 @@ class IntegrationSyncCursorResource extends Resource
 
     protected static ?string $navigationLabel = 'Posisi Sinkronisasi';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Integrasi';
+
     protected static ?string $modelLabel = 'Posisi Sinkronisasi';
 
     protected static ?string $pluralModelLabel = 'Posisi Sinkronisasi';

@@ -15,38 +15,38 @@
     $selectedTemplate = $selectedTemplate ?? 'akademik';
     $templateConfig = [
         'akademik' => [
-            'page' => 'bg-[linear-gradient(135deg,#eef4fb_0%,#fbfcff_54%,#fff8ee_100%)]',
-            'paper' => 'rounded-[28px] border border-white/80 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.14)]',
-            'hero' => 'bg-[var(--brand-950)] text-white',
+            'page' => 'bg-[var(--surface)]',
+            'paper' => 'border border-[var(--border)] bg-white',
+            'hero' => 'bg-white text-[var(--text-primary)]',
             'side' => 'bg-[var(--surface)]',
             'accent' => 'text-[var(--brand-700)]',
             'title' => 'CV Akademik',
         ],
         'impact' => [
-            'page' => 'bg-[radial-gradient(circle_at_88%_3%,#dcebe3,transparent_26%),linear-gradient(135deg,#f8f5ec,#eef6f1)]',
-            'paper' => 'rounded-[30px] border border-emerald-100 bg-[#fffdf8] shadow-[0_30px_90px_rgba(20,83,45,0.14)] [font-family:Georgia,serif]',
-            'hero' => 'bg-[linear-gradient(132deg,#123d30_0%,#1e684d_82%,#d7b86b_82%_86%,#1c6048_86%)] text-white',
+            'page' => 'bg-[var(--surface)]',
+            'paper' => 'border border-[var(--border)] bg-white',
+            'hero' => 'bg-[var(--brand-900)] text-white',
             'side' => 'bg-[#edf4ef]',
             'accent' => 'text-emerald-800',
             'title' => 'Portofolio Mitra',
         ],
         'editorial' => [
-            'page' => 'bg-[linear-gradient(135deg,#f8fafc,#f1f5f9)]',
-            'paper' => 'rounded-2xl border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)]',
-            'hero' => 'bg-[linear-gradient(120deg,#ffffff_0%,#ffffff_58%,#eef4fb_58%)] text-[var(--text-primary)]',
+            'page' => 'bg-[var(--surface)]',
+            'paper' => 'border border-[var(--border)] bg-white',
+            'hero' => 'bg-white text-[var(--text-primary)]',
             'side' => 'bg-white',
             'accent' => 'text-slate-700',
             'title' => 'CV Ringkas',
         ],
     ][$selectedTemplate] ?? [];
-    $isEditorial = $selectedTemplate === 'editorial';
+    $isEditorial = $selectedTemplate !== 'impact';
 @endphp
 
 @section('content')
-<div class="min-h-screen {{ $templateConfig['page'] }} px-4 py-6 sm:px-6 lg:py-10">
+<div class="df-cv-page min-h-screen {{ $templateConfig['page'] }} px-4 py-6 sm:px-6 lg:py-10">
     <div class="mx-auto max-w-6xl">
         <div class="mb-5 flex flex-col gap-3 print:hidden sm:flex-row sm:items-center sm:justify-between">
-            <a href="{{ $preview ? route('profile.show') : route('login') }}" class="text-sm font-bold text-[var(--brand-800)]">{{ $preview ? 'Kembali ke Profil Akademik' : 'Dosen Farmasi UBP' }}</a>
+            <a href="{{ $preview ? route('profile.show').'#profil-publik' : route('login') }}" class="text-sm font-bold text-[var(--brand-800)]">{{ $preview ? 'Kembali ke pilihan CV' : 'Dosen Farmasi UBP' }}</a>
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <nav class="flex flex-wrap gap-2" aria-label="Pilih tampilan CV">
                     @foreach($templates as $key => $template)
@@ -60,15 +60,14 @@
         </div>
         <p class="mb-4 text-sm text-[var(--text-secondary)] print:hidden"><strong>{{ $templates[$selectedTemplate]['label'] }}</strong> · {{ $templates[$selectedTemplate]['description'] }} {{ $preview ? 'Pratinjau ini hanya dapat dilihat oleh Anda.' : 'Tampilan ini hanya mengubah desain, bukan isi CV.' }}</p>
 
-        <main class="overflow-hidden {{ $templateConfig['paper'] }} print:rounded-none print:border-0 print:shadow-none">
-            <section class="relative overflow-hidden {{ $templateConfig['hero'] }} px-6 py-8 sm:px-8 lg:px-10">
-                <div class="absolute inset-x-0 top-0 h-1.5 bg-[linear-gradient(90deg,var(--brand-600),var(--research),var(--service))]"></div>
+        <article class="df-cv-paper df-cv-{{ $selectedTemplate }} {{ $templateConfig['paper'] }} print:rounded-none print:border-0 print:shadow-none">
+            <section class="df-cv-heading relative {{ $templateConfig['hero'] }} px-6 py-8 sm:px-8 lg:px-10">
                 <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center">
                     <div class="flex min-w-0 flex-col gap-6 sm:flex-row sm:items-center">
-                        <x-ui.avatar :name="$displayName" :src="$photoUrl" size="h-28 w-28 sm:h-32 sm:w-32" class="{{ $isEditorial ? 'rounded-2xl ring-[var(--border)]' : 'rounded-3xl ring-white/20' }}" text-class="text-4xl" />
+                        <x-ui.avatar :name="$displayName" :src="$photoUrl" size="h-20 w-20 sm:h-24 sm:w-24" class="rounded-[8px]" text-class="text-3xl" />
                         <div class="min-w-0">
                             <p class="text-xs font-black uppercase tracking-[0.22em] {{ $isEditorial ? 'text-[var(--text-muted)]' : 'text-white/60' }}">{{ $templateConfig['title'] }}</p>
-                            <h1 class="mt-3 break-words text-4xl font-black leading-tight sm:text-5xl {{ $selectedTemplate === 'impact' ? 'font-serif' : '' }}">{{ $displayName }}</h1>
+                            <h1 class="mt-3 break-words text-3xl font-bold leading-tight">{{ $displayName }}</h1>
                             <p class="mt-3 max-w-2xl text-base font-semibold leading-7 {{ $isEditorial ? 'text-[var(--text-secondary)]' : 'text-white/78' }}">
                                 {{ $activeFunctional?->position_name ?: 'Dosen Program Studi Farmasi' }}
                                 @if($primaryExpertise)
@@ -84,7 +83,7 @@
                         </div>
                     </div>
 
-                    <div class="min-w-0 rounded-3xl {{ $isEditorial ? 'bg-white p-0 text-[var(--text-primary)]' : 'bg-white/10 p-5 text-white ring-1 ring-white/15' }}">
+                    <div class="df-cv-summary min-w-0 {{ $isEditorial ? 'bg-white p-0 text-[var(--text-primary)]' : 'p-5 text-white' }}">
                         <p class="text-sm font-bold {{ $isEditorial ? 'text-[var(--text-secondary)]' : 'text-white/70' }}">Ringkasan Publik</p>
                         <div class="mt-4 grid grid-cols-3 gap-2">
                             @foreach($publicSections as $section)
@@ -199,7 +198,7 @@
                     </section>
                 </aside>
             </section>
-        </main>
+        </article>
     </div>
 </div>
 @endsection
