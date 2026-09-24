@@ -16,7 +16,7 @@
         alt="Foto {{ $name }}"
         loading="lazy"
         referrerpolicy="no-referrer"
-        {{ $attributes->merge(['class' => $size.' shrink-0 rounded-full bg-white object-cover object-center ring-1 ring-[var(--border)]']) }}
+        {{ $attributes->merge(['class' => $size.' shrink-0 rounded-[var(--radius-md)] bg-white object-cover object-[center_15%] ring-1 ring-[var(--border)]']) }}
     >
 @else
     <span
