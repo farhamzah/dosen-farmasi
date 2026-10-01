@@ -20,9 +20,20 @@ class TaExamCompletedHandler extends BaseIntegrationHandler implements Integrati
             'lecturer_role' => ['nullable', 'string', 'max:255'],
             'academic_year' => ['nullable', 'string', 'max:20'],
             'semester' => ['nullable', 'string', 'max:20'],
+            'student_id' => ['nullable', 'string', 'max:100'],
+            'student_name' => ['nullable', 'string', 'max:255'],
+            'evidence_links' => ['nullable', 'array'],
+            'evidence_links.*.type' => ['required_with:evidence_links', 'string', 'max:100'],
+            'evidence_links.*.title' => ['required_with:evidence_links', 'string', 'max:255'],
+            'evidence_links.*.url' => ['required_with:evidence_links', 'string', 'max:2000'],
         ]);
 
-        return DB::transaction(function () use ($event, $data): array {
+        $evidenceLinks = collect($data['evidence_links'] ?? [])
+            ->map(fn (array $link): array => array_merge($link, ['url' => $this->safeUrl($link['url'])]))
+            ->values()
+            ->all();
+
+        return DB::transaction(function () use ($event, $data, $evidenceLinks): array {
             $calendar = CalendarEvent::query()
                 ->where('source_app', $event->source_app)
                 ->where('source_record_id', $event->source_record_id)
@@ -52,10 +63,15 @@ class TaExamCompletedHandler extends BaseIntegrationHandler implements Integrati
                     'activity_type' => $data['activity_type'] ?? 'TA_EXAM',
                     'title' => $data['title'],
                     'lecturer_role' => $data['lecturer_role'] ?? null,
+                    'student_identifier' => $data['student_id'] ?? null,
+                    'student_name' => $data['student_name'] ?? null,
                     'academic_year' => $data['academic_year'] ?? null,
                     'semester' => $data['semester'] ?? null,
                     'verification_status' => 'SYSTEM_VERIFIED',
                     'source_type' => 'SYSTEM',
+                    'source_url' => data_get(collect($evidenceLinks)->firstWhere('type', 'proposal_report'), 'url')
+                        ?? data_get(collect($evidenceLinks)->firstWhere('type', 'final_report'), 'url'),
+                    'evidence_links' => $evidenceLinks,
                     'visibility' => 'INTERNAL',
                 ],
             );

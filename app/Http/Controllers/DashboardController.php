@@ -22,6 +22,12 @@ class DashboardController extends Controller
             'systemVerifiedCount' => PortfolioActivity::query()->where('lecturer_core_id', $lecturerId)->where('verification_status', 'SYSTEM_VERIFIED')->count(),
             'pendingCount' => PortfolioActivity::query()->where('lecturer_core_id', $lecturerId)->where('verification_status', 'SUBMITTED')->count(),
             'documentCount' => Document::query()->where('lecturer_core_id', $lecturerId)->count(),
+            'supervisedStudentCount' => PortfolioActivity::query()
+                ->where('lecturer_core_id', $lecturerId)
+                ->whereIn('lecturer_role', ['PEMBIMBING_1', 'PEMBIMBING_2'])
+                ->whereNotNull('student_identifier')
+                ->distinct('student_identifier')
+                ->count('student_identifier'),
             'currentYearActivityCount' => PortfolioActivity::query()->where('lecturer_core_id', $lecturerId)->whereYear('created_at', now()->year)->count(),
             'unreadInboxCount' => InboxItem::query()->where('lecturer_core_id', $lecturerId)->where('status', 'UNREAD')->count(),
             'upcomingAgendaCount' => CalendarEvent::query()->where('lecturer_core_id', $lecturerId)->where('starts_at', '>=', now())->count(),

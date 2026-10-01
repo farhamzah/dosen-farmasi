@@ -13,9 +13,9 @@
     <section class="df-metric-strip" aria-label="Ringkasan portofolio">
         @foreach([
             ['label' => 'Total kegiatan', 'value' => $portfolioCount, 'url' => route('dosen.portfolio.index')],
+            ['label' => 'Mahasiswa dibimbing', 'value' => $supervisedStudentCount, 'url' => route('dosen.portfolio.index')],
             ['label' => 'Draft', 'value' => $draftCount, 'url' => route('dosen.portfolio.index', ['status' => 'DRAFT'])],
             ['label' => 'Perlu revisi', 'value' => $revisionCount, 'url' => route('dosen.portfolio.index', ['status' => 'REVISION_REQUIRED'])],
-            ['label' => 'Dokumen', 'value' => $documentCount, 'url' => route('dosen.documents.index')],
         ] as $metric)
             <a href="{{ $metric['url'] }}" class="df-metric"><span>{{ $metric['label'] }}</span><strong>{{ $metric['value'] }}</strong><x-heroicon-o-arrow-up-right class="h-4 w-4" /></a>
         @endforeach

@@ -60,6 +60,15 @@
                             </div>
                             <p class="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{{ $item->summary ?: 'Tidak ada ringkasan.' }}</p>
                             <p class="mt-2 text-xs font-semibold text-[var(--text-muted)]">{{ str($item->type)->title() }} - {{ optional($item->occurred_at)->format('d M Y H:i') ?: optional($item->created_at)->format('d M Y H:i') }}</p>
+                            @if(!empty($item->metadata['evidence_links']))
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @foreach($item->metadata['evidence_links'] as $link)
+                                        <a href="{{ $link['url'] }}" target="_blank" rel="noopener noreferrer" class="df-button df-button-secondary text-xs">
+                                            {{ $link['title'] }} ↗
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     </div>
                     @if($item->status === 'UNREAD')

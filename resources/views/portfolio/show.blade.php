@@ -54,6 +54,12 @@
             <x-ui.card class="p-5 sm:p-6">
                 <x-ui.section-header title="Ringkasan Kegiatan" description="Informasi inti yang digunakan dalam proses validasi portofolio." />
                 <dl class="mt-5 grid gap-3 sm:grid-cols-2">
+                    @if($activity->student_identifier || $activity->student_name)
+                        <div class="df-card-muted p-4 sm:col-span-2">
+                            <dt class="text-xs font-bold text-[var(--text-muted)]">Mahasiswa</dt>
+                            <dd class="mt-1 font-bold text-[var(--text-primary)]">{{ $activity->student_name ?: '-' }} @if($activity->student_identifier) · {{ $activity->student_identifier }} @endif</dd>
+                        </div>
+                    @endif
                     <div class="df-card-muted p-4">
                         <dt class="text-xs font-bold text-[var(--text-muted)]">Semester</dt>
                         <dd class="mt-1 font-bold text-[var(--text-primary)]">{{ $activity->semester ?: '-' }}</dd>
@@ -140,13 +146,21 @@
             <x-ui.card class="p-5">
                 <x-ui.section-header title="Dokumen Pendukung" description="Bukti yang terhubung dengan aktivitas ini." />
                 <div class="mt-5 space-y-3">
+                    @foreach($activity->evidence_links ?? [] as $link)
+                        <a href="{{ $link['url'] }}" target="_blank" rel="noopener noreferrer" class="df-card-muted df-interactive block p-4">
+                            <p class="font-bold text-[var(--text-primary)]">{{ $link['title'] }}</p>
+                            <p class="mt-1 text-xs font-semibold text-[var(--text-muted)]">Buka dari {{ $activity->source_app ?: 'sistem sumber' }} ↗</p>
+                        </a>
+                    @endforeach
                     @forelse($activity->documents as $document)
                         <a href="{{ route('documents.download', $document) }}" class="df-card-muted df-interactive block p-4">
                             <p class="font-bold text-[var(--text-primary)]">{{ $document->title }}</p>
                             <p class="mt-1 truncate text-xs font-semibold text-[var(--text-muted)]">{{ $document->original_filename }}</p>
                         </a>
                     @empty
+                        @if(empty($activity->evidence_links))
                         <x-ui.empty-state title="Belum ada dokumen" description="Unggah dokumen pendukung dari menu Dokumen." icon="document" />
+                        @endif
                     @endforelse
                 </div>
             </x-ui.card>

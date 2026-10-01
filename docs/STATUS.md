@@ -840,3 +840,28 @@ Status: RC technical QA passed. Premium visual approval remains pending project 
 - A standalone repository may be initialized only in `apps/dosen-farmasi` after final screenshot approval.
 - Remote `https://github.com/farhamzah/dosen-farmasi.git` was checked with `git ls-remote` and returned no refs.
 - No commit or push has been performed.
+
+## 2026-10-02 - TA Invitation And Portfolio Evidence Closure
+
+Status: Implemented; focused cross-application validation passed.
+
+### Implemented
+
+- TA schedule events now carry safe evidence links for the report/manuscript and official invitation bundle.
+- TA completion events now carry report/manuscript, invitation, and minutes links together with student identity.
+- Dosen inbox stores and exposes invitation evidence links in a new tab.
+- TA completion creates or updates a system-verified portfolio activity with student identity and all three evidence links.
+- Dosen dashboard now counts distinct supervised students from `PEMBIMBING_1` and `PEMBIMBING_2` portfolio contributions.
+- The source application remains authoritative; Dosen Farmasi stores references and does not copy private source files.
+
+### Validation
+
+- `php artisan test --filter=IntegrationKernelM4Test`: PASS, 5 tests, 44 assertions.
+- `php artisan test`: PASS, 92 tests, 599 assertions.
+- `npm.cmd run build`: PASS.
+- `php artisan migrate --force`: PASS; migration batch 3 applied.
+- TA focused invitation, outbox, scheduling, and document workflow suites: PASS, 30 tests, 149 assertions.
+
+### Operational Requirement
+
+- Run the new Dosen Farmasi migration before deployment so `student_identifier`, `student_name`, and `evidence_links` are available on portfolio activities.

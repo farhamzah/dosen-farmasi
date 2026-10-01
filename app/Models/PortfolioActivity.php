@@ -17,6 +17,8 @@ class PortfolioActivity extends Model
         'description',
         'personal_notes',
         'lecturer_role',
+        'student_identifier',
+        'student_name',
         'academic_year',
         'semester',
         'start_date',
@@ -34,6 +36,7 @@ class PortfolioActivity extends Model
         'source_entity',
         'source_record_id',
         'source_url',
+        'evidence_links',
         'visibility',
         'created_by_core_user_id',
     ];
@@ -45,6 +48,7 @@ class PortfolioActivity extends Model
             'end_date' => 'date',
             'verified_at' => 'datetime',
             'archived_at' => 'datetime',
+            'evidence_links' => 'array',
         ];
     }
 

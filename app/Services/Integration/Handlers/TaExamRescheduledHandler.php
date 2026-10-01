@@ -4,6 +4,7 @@ namespace App\Services\Integration\Handlers;
 
 use App\Contracts\IntegrationEventHandler;
 use App\Models\CalendarEvent;
+use App\Models\InboxItem;
 use App\Models\IntegrationEvent;
 use Illuminate\Support\Facades\DB;
 
@@ -18,9 +19,18 @@ class TaExamRescheduledHandler extends BaseIntegrationHandler implements Integra
             'ends_at' => ['nullable', 'date'],
             'location' => ['nullable', 'string', 'max:255'],
             'meeting_url' => ['nullable', 'string', 'max:1000'],
+            'evidence_links' => ['nullable', 'array'],
+            'evidence_links.*.type' => ['required_with:evidence_links', 'string', 'max:100'],
+            'evidence_links.*.title' => ['required_with:evidence_links', 'string', 'max:255'],
+            'evidence_links.*.url' => ['required_with:evidence_links', 'string', 'max:2000'],
         ]);
 
-        return DB::transaction(function () use ($event, $data): array {
+        $evidenceLinks = collect($data['evidence_links'] ?? [])
+            ->map(fn (array $link): array => array_merge($link, ['url' => $this->safeUrl($link['url'])]))
+            ->values()
+            ->all();
+
+        return DB::transaction(function () use ($event, $data, $evidenceLinks): array {
             $meetingUrl = $this->safeUrl($data['meeting_url'] ?? null);
             $calendar = CalendarEvent::query()
                 ->where('source_app', $event->source_app)
@@ -44,6 +54,18 @@ class TaExamRescheduledHandler extends BaseIntegrationHandler implements Integra
                 'meeting_url' => $meetingUrl,
                 'source_revision' => $event->source_revision,
             ]);
+
+            if ($evidenceLinks !== []) {
+                $inbox = InboxItem::query()
+                    ->where('source_app', $event->source_app)
+                    ->where('source_record_id', $event->source_record_id)
+                    ->where('lecturer_core_id', $data['lecturer_core_id'])
+                    ->first();
+
+                $inbox?->update([
+                    'metadata' => array_merge($inbox->metadata ?: [], ['evidence_links' => $evidenceLinks]),
+                ]);
+            }
 
             $this->notify($data['lecturer_core_id'], 'Perubahan jadwal TA', $calendar->title, [
                 'calendar_event_id' => $calendar->id,

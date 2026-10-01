@@ -114,11 +114,17 @@ class IntegrationKernelM4Test extends TestCase
                 'starts_at' => now()->addDay()->toIso8601String(),
                 'ends_at' => now()->addDay()->addHour()->toIso8601String(),
                 'meeting_url' => 'https://meet.example.test/exam-1',
+                'evidence_links' => [[
+                    'type' => 'final_defense_invitation',
+                    'title' => 'Surat Undangan Sidang Akhir',
+                    'url' => 'https://ta.example.test/dosen/jadwal/1/bundle-dokumen',
+                ]],
             ],
         ]), ['Authorization' => 'Bearer '.$token])->assertAccepted();
 
         $calendar = CalendarEvent::query()->where('source_record_id', 'exam-1')->firstOrFail();
         $this->assertSame('SCHEDULED', $calendar->status);
+        $this->assertSame('Surat Undangan Sidang Akhir', InboxItem::query()->where('source_record_id', 'exam-1')->firstOrFail()->metadata['evidence_links'][0]['title']);
 
         $this->postJson('/api/internal/v1/events', $this->eventPayload('ta-farmasi', 'ta.exam.rescheduled', [
             'source_record_id' => 'exam-1',
@@ -142,11 +148,23 @@ class IntegrationKernelM4Test extends TestCase
                 'title' => 'Penguji Sidang TA',
                 'activity_type' => 'TA_EXAM',
                 'lecturer_role' => 'Penguji',
+                'student_id' => '2041620001',
+                'student_name' => 'Mahasiswa TA',
+                'evidence_links' => [
+                    ['type' => 'final_report', 'title' => 'Laporan TA', 'url' => 'https://drive.google.com/file/d/report'],
+                    ['type' => 'final_defense_invitation', 'title' => 'Surat Undangan', 'url' => 'https://ta.example.test/dosen/jadwal/1/bundle-dokumen'],
+                    ['type' => 'final_defense_minutes', 'title' => 'Berita Acara', 'url' => 'https://ta.example.test/dosen/jadwal/1/bundle-dokumen'],
+                ],
             ],
         ]), ['Authorization' => 'Bearer '.$token])->assertAccepted();
 
         $this->assertSame('COMPLETED', $calendar->fresh()->status);
-        $this->assertSame('SYSTEM_VERIFIED', PortfolioActivity::query()->where('source_record_id', 'exam-1')->firstOrFail()->verification_status);
+        $activity = PortfolioActivity::query()->where('source_record_id', 'exam-1')->firstOrFail();
+        $this->assertSame('SYSTEM_VERIFIED', $activity->verification_status);
+        $this->assertSame('2041620001', $activity->student_identifier);
+        $this->assertSame('Mahasiswa TA', $activity->student_name);
+        $this->assertCount(3, $activity->evidence_links);
+        $this->assertSame('https://drive.google.com/file/d/report', $activity->source_url);
 
         $this->postJson('/api/internal/v1/events', $this->eventPayload('ta-farmasi', 'ta.exam.cancelled', [
             'source_record_id' => 'exam-1',

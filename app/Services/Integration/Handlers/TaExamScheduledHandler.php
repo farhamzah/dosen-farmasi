@@ -29,11 +29,20 @@ class TaExamScheduledHandler extends BaseIntegrationHandler implements Integrati
             'location' => ['nullable', 'string', 'max:255'],
             'meeting_url' => ['nullable', 'string', 'max:1000'],
             'role' => ['nullable', 'string', 'max:100'],
+            'evidence_links' => ['nullable', 'array'],
+            'evidence_links.*.type' => ['required_with:evidence_links', 'string', 'max:100'],
+            'evidence_links.*.title' => ['required_with:evidence_links', 'string', 'max:255'],
+            'evidence_links.*.url' => ['required_with:evidence_links', 'string', 'max:2000'],
         ]);
+
+        $evidenceLinks = collect($data['evidence_links'] ?? [])
+            ->map(fn (array $link): array => array_merge($link, ['url' => $this->safeUrl($link['url'])]))
+            ->values()
+            ->all();
 
         $admin = AppUser::query()->where('role', 'admin')->first() ?? new AppUser(['role' => 'system']);
 
-        return DB::transaction(function () use ($event, $data, $admin): array {
+        return DB::transaction(function () use ($event, $data, $admin, $evidenceLinks): array {
             $meetingUrl = $this->safeUrl($data['meeting_url'] ?? null);
             $inbox = InboxItem::query()
                 ->where('source_app', $event->source_app)
@@ -50,8 +59,12 @@ class TaExamScheduledHandler extends BaseIntegrationHandler implements Integrati
                     'priority' => 'NORMAL',
                     'source_app' => $event->source_app,
                     'source_record_id' => $event->source_record_id,
-                    'metadata' => ['source_revision' => $event->source_revision, 'role' => $data['role'] ?? null],
+                    'metadata' => ['source_revision' => $event->source_revision, 'role' => $data['role'] ?? null, 'evidence_links' => $evidenceLinks],
                 ], $admin);
+            } elseif ($evidenceLinks !== []) {
+                $inbox->update([
+                    'metadata' => array_merge($inbox->metadata ?: [], ['evidence_links' => $evidenceLinks]),
+                ]);
             }
 
             $calendar = CalendarEvent::query()
