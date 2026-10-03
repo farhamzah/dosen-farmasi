@@ -14,6 +14,8 @@ class DocumentDownloadController extends Controller
     {
         Gate::authorize('view', $document);
 
+        abort_unless(Storage::disk($document->disk)->exists($document->path), 404);
+
         $audit->record('document_downloaded', $request->user(), $document, [], $request);
 
         return Storage::disk($document->disk)->download($document->path, $document->original_filename);

@@ -16,6 +16,9 @@
 
     <form method="post" action="{{ route('dosen.documents.store') }}" enctype="multipart/form-data" class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
         @csrf
+        @if($selectedActivity && request()->boolean('return_to_activity'))
+            <input type="hidden" name="return_to_activity" value="1">
+        @endif
 
         <div class="space-y-5">
             @if($errors->any())
@@ -29,7 +32,7 @@
                         Jenis dokumen
                         <select name="document_type" class="df-field" required>
                             @foreach(config('dosen_farmasi.documents.types') as $type)
-                                <option value="{{ $type }}" @selected(old('document_type') === $type)>{{ str($type)->replace('_', ' ')->title() }}</option>
+                                <option value="{{ $type }}" @selected(old('document_type', $suggestedDocumentType) === $type)>{{ str($type)->replace('_', ' ')->title() }}</option>
                             @endforeach
                         </select>
                     </label>
@@ -67,7 +70,7 @@
                     <select name="portfolio_activity_id" class="df-field">
                         <option value="">Tidak dikaitkan</option>
                         @foreach($activities as $activity)
-                            <option value="{{ $activity->id }}" @selected(old('portfolio_activity_id') == $activity->id)>{{ $activity->title }}</option>
+                            <option value="{{ $activity->id }}" @selected(old('portfolio_activity_id', $selectedActivity?->id) == $activity->id)>{{ $activity->title }}</option>
                         @endforeach
                     </select>
                 </label>

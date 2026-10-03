@@ -1,6 +1,6 @@
-@extends('layouts.app', ['title' => 'Portofolio Tridharma'])
+@extends('layouts.app', ['title' => 'Tridharma dan Penunjang'])
 
-@section('breadcrumb', $activeDomain ? 'Tridharma - '.$domains[$activeDomain]['short_label'] : 'Portofolio Tridharma')
+@section('breadcrumb', $activeDomain ? 'Portofolio - '.$domains[$activeDomain]['short_label'] : 'Tridharma dan Penunjang')
 
 @php
     $summaryCollection = collect($summaries);
@@ -31,11 +31,13 @@
         'pendidikan' => 'Kelola pengajaran, pembimbingan, pengujian, praktikum, dan pengembangan bahan ajar.',
         'penelitian' => 'Kelola penelitian, publikasi, hibah, HKI, dan luaran ilmiah.',
         'pengabdian' => 'Kelola kegiatan pengabdian, mitra, kelompok sasaran, lokasi, luaran, dan bukti pelaksanaan.',
+        'penunjang' => 'Catat kepanitiaan, tugas tambahan, dan kegiatan penunjang beserta surat pendukungnya.',
     ];
     $compactSubcategories = [
         'pendidikan' => ['Semua' => null, 'Pengajaran' => 'perkuliahan', 'Pembimbingan' => 'pembimbing-tugas-akhir', 'Pengujian' => 'penguji-tugas-akhir', 'Praktikum' => 'praktikum', 'Lainnya' => 'bahan-ajar'],
         'penelitian' => ['Semua' => null, 'Penelitian' => 'penelitian', 'Publikasi' => 'publikasi-jurnal', 'HKI' => 'hki-paten', 'Buku' => 'buku', 'Hibah' => 'hibah', 'Lainnya' => 'kolaborasi'],
         'pengabdian' => ['Semua' => null, 'Kegiatan' => 'kegiatan-pengabdian', 'Mitra' => 'mitra', 'Luaran' => 'luaran', 'Publikasi' => 'publikasi', 'Lainnya' => 'dokumentasi-laporan'],
+        'penunjang' => ['Semua' => null, 'Kepanitiaan' => 'kepanitiaan', 'Organisasi' => 'organisasi', 'Tugas Tambahan' => 'tugas-tambahan', 'Penghargaan' => 'penghargaan'],
     ];
     $sortValue = $currentSort.':'.$currentDirection;
     $queryWithoutView = request()->except(['view', 'page']);
@@ -47,9 +49,9 @@
 @section('content')
 <div class="space-y-6">
     <x-ui.page-header
-        eyebrow="Portofolio Tridharma"
-        title="{{ $activeDomain ? $domains[$activeDomain]['label'] : 'Portofolio Tridharma' }}"
-        description="{{ $activeDomain ? $domainDescriptions[$activeDomain] : 'Pendidikan, penelitian, dan pengabdian Anda.' }}"
+        eyebrow="Portofolio Akademik"
+        title="{{ $activeDomain ? $domains[$activeDomain]['label'] : 'Tridharma dan Penunjang' }}"
+        description="{{ $activeDomain ? $domainDescriptions[$activeDomain] : 'Pendidikan, penelitian, pengabdian, dan kegiatan penunjang Anda.' }}"
         :compact="(bool) $activeDomain"
     >
         <x-slot:actions>
@@ -65,7 +67,7 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <nav class="df-segmented" aria-label="Navigasi Tridharma">
+    <nav class="df-segmented" aria-label="Navigasi portofolio akademik">
         <a href="{{ route('tridharma.index') }}" class="shrink-0 rounded-[var(--radius-sm)] px-4 py-2.5 text-sm font-extrabold {{ $activeDomain ? 'text-[var(--text-secondary)] hover:bg-white' : 'bg-[var(--brand-900)] text-white shadow-sm' }}">Ringkasan</a>
         @foreach($domains as $key => $domain)
             <a href="{{ route('tridharma.domain', $key) }}" class="shrink-0 rounded-[var(--radius-sm)] px-4 py-2.5 text-sm font-extrabold {{ $activeDomain === $key ? 'bg-[var(--brand-900)] text-white shadow-sm' : 'text-[var(--text-secondary)] hover:bg-white' }}">{{ $domain['short_label'] }}</a>
@@ -197,7 +199,7 @@
     @endif
 
     @unless($activeDomain)
-        <section class="grid gap-5 xl:grid-cols-3">
+        <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             @foreach($summaries as $summary)
                 <x-academic.tridharma-domain-card :summary="$summary" />
             @endforeach

@@ -146,6 +146,10 @@ class PortfolioUi
             return 'pengabdian';
         }
 
+        if ($domain === 'penunjang') {
+            return 'penunjang';
+        }
+
         $slug = Str::slug((string) $subcategory);
 
         if (in_array($slug, ['publikasi-jurnal', 'prosiding'], true)) {

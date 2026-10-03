@@ -144,7 +144,13 @@
             </x-ui.card>
 
             <x-ui.card class="p-5">
-                <x-ui.section-header title="Dokumen Pendukung" description="Bukti yang terhubung dengan aktivitas ini." />
+                <x-ui.section-header title="Dokumen Pendukung" description="Bukti yang terhubung dengan aktivitas ini.">
+                    <x-slot:actions>
+                        @can('update', $activity)
+                            <x-ui.button :href="route('dosen.documents.create', ['portfolio_activity_id' => $activity->id, 'document_type' => 'SURAT_KEPUTUSAN', 'return_to_activity' => 1])" variant="secondary">Unggah SK / Surat</x-ui.button>
+                        @endcan
+                    </x-slot:actions>
+                </x-ui.section-header>
                 <div class="mt-5 space-y-3">
                     @foreach($activity->evidence_links ?? [] as $link)
                         <a href="{{ $link['url'] }}" target="_blank" rel="noopener noreferrer" class="df-card-muted df-interactive block p-4">

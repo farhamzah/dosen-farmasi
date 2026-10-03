@@ -31,4 +31,24 @@ class PortfolioM2StartTest extends TestCase
         $this->actingAs($user)->post(route('dosen.portfolio.submit', $activity))->assertRedirect();
         $this->assertSame('SUBMITTED', $activity->fresh()->verification_status);
     }
+
+    public function test_committee_shortcut_selects_supporting_category_and_keeps_private_visibility(): void
+    {
+        $user = AppUser::query()->create(['core_user_id' => '1', 'core_lecturer_id' => '10', 'name' => 'Dosen', 'role' => 'dosen', 'is_active' => true]);
+        $category = PortfolioCategory::query()->create([
+            'name' => 'Penunjang',
+            'slug' => 'penunjang',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user)->get(route('dosen.portfolio.index'))
+            ->assertOk()
+            ->assertSee('Catat Kepanitiaan');
+
+        $this->actingAs($user)->get(route('dosen.portfolio.create', ['template' => 'kepanitiaan']))
+            ->assertOk()
+            ->assertSee('value="'.$category->id.'" selected', false)
+            ->assertSee('value="Kepanitiaan"', false)
+            ->assertSee('value="PRIVATE" selected', false);
+    }
 }

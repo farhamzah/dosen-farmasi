@@ -70,10 +70,10 @@ Route::prefix('dosen')->middleware(['auth', 'dosen.role:dosen,admin'])->name('do
 Route::middleware(['auth', 'dosen.role:dosen,admin'])->group(function (): void {
     Route::get('/tridharma', [TridharmaController::class, 'index'])->name('tridharma.index');
     Route::get('/tridharma/{domain}/export', [TridharmaController::class, 'export'])
-        ->whereIn('domain', ['pendidikan', 'penelitian', 'pengabdian'])
+        ->whereIn('domain', ['pendidikan', 'penelitian', 'pengabdian', 'penunjang'])
         ->name('tridharma.domain.export');
     Route::get('/tridharma/{domain}', [TridharmaController::class, 'index'])
-        ->whereIn('domain', ['pendidikan', 'penelitian', 'pengabdian'])
+        ->whereIn('domain', ['pendidikan', 'penelitian', 'pengabdian', 'penunjang'])
         ->name('tridharma.domain');
     Route::get('/profil', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profil/cv-pratinjau', [ProfileController::class, 'previewProfile'])->name('profile.preview');

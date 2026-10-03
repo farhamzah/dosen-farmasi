@@ -34,13 +34,21 @@ class DocumentController extends Controller
         return view('documents.index', [...$counts, 'documents' => $query->paginate(10)->withQueryString()]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('documents.create', ['activities' => PortfolioActivity::query()
+        $activities = PortfolioActivity::query()
             ->where('lecturer_core_id', auth()->user()->core_lecturer_id)
             ->whereIn('verification_status', ['DRAFT', 'REVISION_REQUIRED'])
             ->orderBy('title')
-            ->get()]);
+            ->get();
+        $selectedActivity = $activities->firstWhere('id', $request->integer('portfolio_activity_id'));
+        $documentType = $request->query('document_type');
+
+        return view('documents.create', [
+            'activities' => $activities,
+            'selectedActivity' => $selectedActivity,
+            'suggestedDocumentType' => in_array($documentType, config('dosen_farmasi.documents.types'), true) ? $documentType : null,
+        ]);
     }
 
     public function store(Request $request, AuditLogger $audit, DocumentFileValidator $fileValidator)
@@ -128,6 +136,10 @@ class DocumentController extends Controller
         } catch (\Throwable $exception) {
             Storage::disk($disk)->delete($path);
             throw $exception;
+        }
+
+        if ($activity && $request->boolean('return_to_activity')) {
+            return redirect()->route('dosen.portfolio.show', $activity);
         }
 
         return redirect()->route('dosen.documents.index');

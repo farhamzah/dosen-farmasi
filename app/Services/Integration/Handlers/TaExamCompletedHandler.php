@@ -7,6 +7,7 @@ use App\Models\CalendarEvent;
 use App\Models\InboxItem;
 use App\Models\IntegrationEvent;
 use App\Models\PortfolioActivity;
+use App\Models\PortfolioCategory;
 use Illuminate\Support\Facades\DB;
 
 class TaExamCompletedHandler extends BaseIntegrationHandler implements IntegrationEventHandler
@@ -34,6 +35,10 @@ class TaExamCompletedHandler extends BaseIntegrationHandler implements Integrati
             ->all();
 
         return DB::transaction(function () use ($event, $data, $evidenceLinks): array {
+            $category = PortfolioCategory::query()->firstOrCreate(
+                ['slug' => 'pendidikan-dan-pengajaran'],
+                ['name' => 'Pendidikan dan Pengajaran', 'sort_order' => 1, 'is_active' => true],
+            );
             $calendar = CalendarEvent::query()
                 ->where('source_app', $event->source_app)
                 ->where('source_record_id', $event->source_record_id)
@@ -60,6 +65,7 @@ class TaExamCompletedHandler extends BaseIntegrationHandler implements Integrati
                     'lecturer_core_id' => $data['lecturer_core_id'],
                 ],
                 [
+                    'category_id' => $category->id,
                     'activity_type' => $data['activity_type'] ?? 'TA_EXAM',
                     'title' => $data['title'],
                     'lecturer_role' => $data['lecturer_role'] ?? null,

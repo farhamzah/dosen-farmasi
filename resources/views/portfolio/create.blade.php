@@ -30,13 +30,13 @@
                         <select name="category_id" class="df-field">
                             <option value="">Pilih kategori</option>
                             @foreach($categories as $category)
-                                <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>{{ $category->name }}</option>
+                                <option value="{{ $category->id }}" @selected(old('category_id', $suggestedCategoryId) == $category->id)>{{ $category->name }}</option>
                             @endforeach
                         </select>
                     </label>
                     <label class="grid gap-2 text-sm font-bold text-[var(--text-secondary)]">
                         Tipe kegiatan
-                        <input name="activity_type" value="{{ old('activity_type') }}" placeholder="Contoh: Mengajar, penelitian, hibah" class="df-field" required>
+                        <input name="activity_type" value="{{ old('activity_type', $suggestedActivityType) }}" placeholder="Contoh: Kepanitiaan, penelitian, pengabdian" class="df-field" required>
                     </label>
                     <label class="grid gap-2 text-sm font-bold text-[var(--text-secondary)] md:col-span-2">
                         Judul

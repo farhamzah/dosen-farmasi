@@ -75,6 +75,14 @@
                             <th class="hidden px-4 py-3 xl:table-cell">ISBN</th>
                             <th class="px-4 py-3">Jenis</th>
                             <th class="px-4 py-3">Status</th>
+                        @elseif($kind === 'penunjang')
+                            <th class="px-4 py-3">Tanggal</th>
+                            <th class="px-4 py-3">Kegiatan</th>
+                            <th class="px-4 py-3">Jenis</th>
+                            <th class="hidden px-4 py-3 lg:table-cell">Peran</th>
+                            <th class="px-4 py-3">Dokumen</th>
+                            <th class="px-4 py-3">Status</th>
+                            <th class="hidden px-4 py-3 xl:table-cell">Sumber</th>
                         @elseif($kind === 'penelitian')
                             <th class="px-4 py-3">Tanggal</th>
                             <th class="px-4 py-3">Judul</th>
@@ -157,6 +165,14 @@
                                 <td class="hidden px-4 py-4 align-top xl:table-cell">-</td>
                                 <td class="px-4 py-4 align-top">{{ $typeLabel($activity) }}</td>
                                 <td class="px-4 py-4 align-top"><x-ui.badge :tone="$statusTone($activity)"><span aria-hidden="true">●</span> {{ $statusLabel($activity) }}</x-ui.badge></td>
+                            @elseif($kind === 'penunjang')
+                                <td class="px-4 py-4 align-top font-semibold text-[var(--text-secondary)]">{{ $dateLabel($activity) }}</td>
+                                <td class="max-w-xs px-4 py-4 align-top"><a href="{{ route('dosen.portfolio.show', $activity) }}" class="line-clamp-2 font-extrabold text-[var(--text-primary)] hover:text-[var(--brand-700)]">{{ $activity->title }}</a></td>
+                                <td class="px-4 py-4 align-top">{{ $typeLabel($activity) }}</td>
+                                <td class="hidden px-4 py-4 align-top lg:table-cell">{{ $activity->lecturer_role ?: '-' }}</td>
+                                <td class="px-4 py-4 align-top">{{ $documentLabel($activity) }}</td>
+                                <td class="px-4 py-4 align-top"><x-ui.badge :tone="$statusTone($activity)">{{ $statusLabel($activity) }}</x-ui.badge></td>
+                                <td class="hidden px-4 py-4 align-top xl:table-cell">{{ $sourceLabel($activity) }}</td>
                             @elseif($kind === 'penelitian')
                                 <td class="px-4 py-4 align-top font-semibold text-[var(--text-secondary)]">{{ $dateLabel($activity) }}</td>
                                 <td class="max-w-xs px-4 py-4 align-top">
@@ -210,6 +226,9 @@
                 <dl class="mt-4 grid gap-2 text-sm text-[var(--text-secondary)]">
                     <div><dt class="inline font-bold text-[var(--text-primary)]">Peran:</dt> <dd class="inline">{{ $activity->lecturer_role ?: '-' }}</dd></div>
                     <div><dt class="inline font-bold text-[var(--text-primary)]">Periode:</dt> <dd class="inline">{{ $periodLabel($activity) }}</dd></div>
+                    @if($domain === 'penunjang')
+                        <div><dt class="inline font-bold text-[var(--text-primary)]">Dokumen:</dt> <dd class="inline">{{ $documentLabel($activity) }}</dd></div>
+                    @endif
                 </dl>
             </article>
         @endforeach

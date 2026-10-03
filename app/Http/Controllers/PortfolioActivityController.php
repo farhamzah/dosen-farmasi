@@ -7,6 +7,7 @@ use App\Models\PortfolioCategory;
 use App\Services\AuditLogger;
 use App\Services\PortfolioStatusTransitionService;
 use App\Services\TridharmaExportService;
+use App\Services\TridharmaPortfolioService;
 use App\Support\IndonesianDateFormatter;
 use App\Support\PortfolioUi;
 use Illuminate\Http\Request;
@@ -46,9 +47,17 @@ class PortfolioActivityController extends Controller
         }, $filename, ['Content-Type' => $format === 'xls' ? 'application/vnd.ms-excel; charset=UTF-8' : 'text/csv; charset=UTF-8']);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('portfolio.create', ['categories' => PortfolioCategory::query()->where('is_active', true)->orderBy('sort_order')->get()]);
+        $categories = PortfolioCategory::query()->where('is_active', true)->orderBy('sort_order')->get();
+        $isCommittee = $request->query('template') === 'kepanitiaan';
+        $domainSlug = app(TridharmaPortfolioService::class)->domain($request->string('domain')->toString())['category_slug'] ?? null;
+
+        return view('portfolio.create', [
+            'categories' => $categories,
+            'suggestedCategoryId' => $categories->firstWhere('slug', $isCommittee ? 'penunjang' : $domainSlug)?->id,
+            'suggestedActivityType' => $isCommittee ? 'Kepanitiaan' : null,
+        ]);
     }
 
     public function store(Request $request, AuditLogger $audit)

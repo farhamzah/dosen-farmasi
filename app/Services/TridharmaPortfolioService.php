@@ -74,6 +74,19 @@ class TridharmaPortfolioService
                     'dokumentasi/laporan',
                 ],
             ],
+            'penunjang' => [
+                'label' => 'Penunjang',
+                'short_label' => 'Penunjang',
+                'category_slug' => 'penunjang',
+                'category_slugs' => ['penunjang', 'organisasi-dan-kepanitiaan'],
+                'description' => 'Catat kepanitiaan, tugas tambahan, dan kegiatan penunjang lain beserta surat pendukungnya.',
+                'subcategories' => [
+                    'Kepanitiaan',
+                    'Organisasi',
+                    'Tugas Tambahan',
+                    'Penghargaan',
+                ],
+            ],
         ];
     }
 
@@ -149,14 +162,15 @@ class TridharmaPortfolioService
         $domain = $this->domain($domainKey);
         abort_if(! $domain, 404);
 
-        $category = PortfolioCategory::query()->where('slug', $domain['category_slug'])->first();
+        $categoryIds = PortfolioCategory::query()
+            ->whereIn('slug', $domain['category_slugs'] ?? [$domain['category_slug']])
+            ->pluck('id');
 
         return PortfolioActivity::query()
             ->with(['category', 'documents', 'tags'])
             ->withCount('documents')
             ->where('lecturer_core_id', $lecturerCoreId)
-            ->when($category, fn ($query) => $query->where('category_id', $category->id))
-            ->when(! $category, fn ($query) => $query->whereRaw('1 = 0'))
+            ->whereIn('category_id', $categoryIds)
             ->when($request->filled('q'), function ($query) use ($request): void {
                 $term = '%'.$request->string('q')->trim().'%';
                 $query->where(fn ($query) => $query->where('title', 'like', $term)->orWhere('description', 'like', $term));
@@ -165,7 +179,10 @@ class TridharmaPortfolioService
             ->when($request->filled('semester'), fn ($query) => $query->where('semester', $request->string('semester')))
             ->when($request->filled('status'), fn ($query) => $query->where('verification_status', $request->string('status')))
             ->when($request->filled('source'), fn ($query) => $query->where('source_type', $request->string('source')))
-            ->when($request->filled('subcategory'), fn ($query) => $query->where('activity_type', Str::slug($request->string('subcategory'))))
+            ->when($request->filled('subcategory'), function ($query) use ($request): void {
+                $slug = Str::slug($request->string('subcategory'));
+                $query->whereRaw('lower(activity_type) in (?, ?)', [$slug, str_replace('-', ' ', $slug)]);
+            })
             ->when($request->filled('role'), fn ($query) => $query->where('lecturer_role', 'like', '%'.$request->string('role')->trim().'%'))
             ->when($request->filled('date_from'), fn ($query) => $query->whereDate('start_date', '>=', $request->date('date_from')))
             ->when($request->filled('date_to'), fn ($query) => $query->whereDate('start_date', '<=', $request->date('date_to')));

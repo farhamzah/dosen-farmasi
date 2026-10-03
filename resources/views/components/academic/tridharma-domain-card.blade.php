@@ -7,6 +7,7 @@
         'pendidikan' => ['soft' => 'var(--education-soft)', 'accent' => 'var(--education)', 'icon' => 'tridharma', 'caption' => 'Pengajaran dan bimbingan'],
         'penelitian' => ['soft' => 'var(--research-soft)', 'accent' => 'var(--research)', 'icon' => 'search', 'caption' => 'Riset, publikasi, dan HKI'],
         'pengabdian' => ['soft' => 'var(--service-soft)', 'accent' => 'var(--service)', 'icon' => 'portfolio', 'caption' => 'Mitra, luaran, dan masyarakat'],
+        'penunjang' => ['soft' => 'var(--support-soft)', 'accent' => 'var(--support)', 'icon' => 'portfolio', 'caption' => 'Kepanitiaan dan tugas tambahan'],
     ][$summary['key']] ?? ['soft' => 'var(--brand-50)', 'accent' => 'var(--brand-600)', 'icon' => 'portfolio', 'caption' => 'Portofolio akademik'];
     $progress = $summary['total'] > 0 ? (int) round(($summary['verified'] / max(1, $summary['total'])) * 100) : 0;
 @endphp

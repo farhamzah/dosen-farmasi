@@ -10,8 +10,10 @@ use App\Models\IntegrationClient;
 use App\Models\IntegrationEvent;
 use App\Models\IntegrationFailure;
 use App\Models\PortfolioActivity;
+use App\Models\PortfolioCategory;
 use App\Services\IntegrationTokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -54,6 +56,9 @@ class IntegrationKernelM4Test extends TestCase
 
     public function test_tu_letter_lifecycle_is_idempotent_and_preserves_history(): void
     {
+        Storage::fake(config('dosen_farmasi.documents.disk'));
+        $contents = '%PDF-1.4 test surat';
+        Storage::disk(config('dosen_farmasi.documents.disk'))->put('tu/letter-1/surat.pdf', $contents);
         AppUser::query()->create(['core_user_id' => '1', 'core_lecturer_id' => '10', 'name' => 'Dosen', 'role' => 'dosen', 'is_active' => true]);
         $token = $this->clientWithToken('tu-farmasi', ['events:push']);
         $eventId = (string) Str::uuid();
@@ -84,11 +89,12 @@ class IntegrationKernelM4Test extends TestCase
                 'title' => 'Surat Tugas Seminar',
                 'filename' => 'surat.pdf',
                 'path' => 'tu/letter-1/surat.pdf',
-                'sha256_checksum' => str_repeat('a', 64),
+                'sha256_checksum' => hash('sha256', $contents),
             ],
         ]), ['Authorization' => 'Bearer '.$token])->assertAccepted();
 
         $this->assertSame(1, Document::query()->where('source_record_id', 'letter-1')->count());
+        $this->assertSame(strlen($contents), Document::query()->where('source_record_id', 'letter-1')->value('size_bytes'));
         $this->assertNotNull(InboxItem::query()->where('source_record_id', 'letter-1')->firstOrFail()->document_id);
 
         $this->postJson('/api/internal/v1/events', $this->eventPayload('tu-farmasi', 'tu.letter.cancelled', [
@@ -161,6 +167,7 @@ class IntegrationKernelM4Test extends TestCase
         $this->assertSame('COMPLETED', $calendar->fresh()->status);
         $activity = PortfolioActivity::query()->where('source_record_id', 'exam-1')->firstOrFail();
         $this->assertSame('SYSTEM_VERIFIED', $activity->verification_status);
+        $this->assertSame('pendidikan-dan-pengajaran', $activity->category?->slug);
         $this->assertSame('2041620001', $activity->student_identifier);
         $this->assertSame('Mahasiswa TA', $activity->student_name);
         $this->assertCount(3, $activity->evidence_links);
@@ -183,6 +190,68 @@ class IntegrationKernelM4Test extends TestCase
 
         $this->assertSame('IGNORED', IntegrationEvent::query()->latest('id')->firstOrFail()->status);
         $this->assertSame('CANCELLED', $calendar->fresh()->status);
+    }
+
+    public function test_tu_published_letter_requires_real_file_and_matching_checksum(): void
+    {
+        Storage::fake(config('dosen_farmasi.documents.disk'));
+        AppUser::query()->create(['core_user_id' => '1', 'core_lecturer_id' => '10', 'name' => 'Dosen', 'role' => 'dosen', 'is_active' => true]);
+        $token = $this->clientWithToken('tu-farmasi', ['events:push']);
+        $payload = [
+            'lecturer_core_id' => '10',
+            'title' => 'Surat Tugas',
+            'filename' => 'surat.pdf',
+            'path' => 'tu/letter-2/surat.pdf',
+            'sha256_checksum' => hash('sha256', 'isi surat'),
+        ];
+
+        $this->postJson('/api/internal/v1/events', $this->eventPayload('tu-farmasi', 'tu.letter.published', [
+            'source_record_id' => 'letter-2',
+            'payload' => $payload,
+        ]), ['Authorization' => 'Bearer '.$token])
+            ->assertAccepted()
+            ->assertJsonPath('processing_status', 'FAILED');
+
+        $this->assertSame('DOCUMENT_NOT_FOUND', IntegrationEvent::query()->latest('id')->value('last_error_code'));
+        $this->assertSame(0, Document::query()->count());
+
+        Storage::disk(config('dosen_farmasi.documents.disk'))->put($payload['path'], 'isi berbeda');
+        $this->postJson('/api/internal/v1/events', $this->eventPayload('tu-farmasi', 'tu.letter.published', [
+            'source_record_id' => 'letter-2',
+            'source_revision' => 2,
+            'payload' => $payload,
+        ]), ['Authorization' => 'Bearer '.$token])
+            ->assertAccepted()
+            ->assertJsonPath('processing_status', 'FAILED');
+
+        $this->assertSame('DOCUMENT_CHECKSUM_MISMATCH', IntegrationEvent::query()->latest('id')->value('last_error_code'));
+        $this->assertSame(0, Document::query()->count());
+    }
+
+    public function test_ta_portfolio_backfill_only_categorizes_completed_ta_exam(): void
+    {
+        AppUser::query()->create(['core_user_id' => '1', 'core_lecturer_id' => '10', 'name' => 'Dosen', 'role' => 'dosen', 'is_active' => true]);
+
+        foreach (['SYSTEM_VERIFIED', 'DRAFT'] as $status) {
+            PortfolioActivity::query()->create([
+                'lecturer_core_id' => '10',
+                'source_app' => 'ta-farmasi',
+                'source_entity' => 'ta.exam',
+                'source_record_id' => 'ta-'.$status,
+                'source_type' => 'SYSTEM',
+                'activity_type' => 'TA_EXAM',
+                'title' => 'Sidang '.$status,
+                'verification_status' => $status,
+                'visibility' => 'INTERNAL',
+            ]);
+        }
+
+        $migration = require database_path('migrations/2026_10_03_000002_backfill_ta_portfolio_categories.php');
+        $migration->up();
+
+        $category = PortfolioCategory::query()->where('slug', 'pendidikan-dan-pengajaran')->firstOrFail();
+        $this->assertSame($category->id, PortfolioActivity::query()->where('verification_status', 'SYSTEM_VERIFIED')->value('category_id'));
+        $this->assertNull(PortfolioActivity::query()->where('verification_status', 'DRAFT')->value('category_id'));
     }
 
     public function test_failed_event_can_be_replayed_by_admin_after_payload_is_fixed(): void

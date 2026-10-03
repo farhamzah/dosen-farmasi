@@ -21,6 +21,55 @@ class M8TridharmaProfileTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_supporting_domain_lists_new_and_legacy_committee_records_for_owner_only(): void
+    {
+        $this->seed();
+        $user = $this->dosen();
+        $other = $this->dosen('2', '20', 'Dosen Lain');
+        $supporting = PortfolioCategory::query()->where('slug', 'penunjang')->firstOrFail();
+        $legacy = PortfolioCategory::query()->where('slug', 'organisasi-dan-kepanitiaan')->firstOrFail();
+
+        foreach ([
+            [$user->core_lecturer_id, $supporting->id, 'Panitia Dies Natalis'],
+            [$user->core_lecturer_id, $legacy->id, 'Panitia Lama'],
+            [$other->core_lecturer_id, $supporting->id, 'Panitia Dosen Lain'],
+        ] as [$lecturerId, $categoryId, $title]) {
+            PortfolioActivity::query()->create([
+                'lecturer_core_id' => $lecturerId,
+                'category_id' => $categoryId,
+                'activity_type' => 'Kepanitiaan',
+                'title' => $title,
+                'source_type' => 'MANUAL',
+                'verification_status' => 'DRAFT',
+                'visibility' => 'PRIVATE',
+            ]);
+        }
+
+        $this->assertSame(2, app(TridharmaPortfolioService::class)->summary($user->core_lecturer_id, 'penunjang')['total']);
+
+        $this->actingAs($user)->get(route('tridharma.domain', 'penunjang'))
+            ->assertOk()
+            ->assertSee('Panitia Dies Natalis')
+            ->assertSee('Panitia Lama')
+            ->assertSee('Dokumen')
+            ->assertDontSee('Panitia Dosen Lain');
+
+        $this->actingAs($user)->get(route('tridharma.domain', ['domain' => 'penunjang', 'subcategory' => 'kepanitiaan']))
+            ->assertOk()
+            ->assertSee('Panitia Dies Natalis')
+            ->assertSee('Panitia Lama');
+
+        $this->actingAs($user)->get(route('dosen.portfolio.create', ['domain' => 'penunjang']))
+            ->assertOk()
+            ->assertSee('value="'.$supporting->id.'" selected', false);
+
+        $csv = $this->actingAs($user)->get(route('tridharma.domain.export', ['domain' => 'penunjang', 'format' => 'csv']))
+            ->assertOk()
+            ->streamedContent();
+        $this->assertStringContainsString('Panitia Dies Natalis', $csv);
+        $this->assertStringNotContainsString('Panitia Dosen Lain', $csv);
+    }
+
     public function test_summary_counts_sources_once_and_respects_search_filters(): void
     {
         $this->seed();
@@ -528,7 +577,7 @@ class M8TridharmaProfileTest extends TestCase
         $this->actingAs($user)
             ->get(route('tridharma.index'))
             ->assertOk()
-            ->assertSee('Portofolio Tridharma')
+            ->assertSee('Tridharma dan Penunjang')
             ->assertSee('Belum ada kegiatan pada periode ini')
             ->assertSee('Filter')
             ->assertSee('Sumber Otomatis');
