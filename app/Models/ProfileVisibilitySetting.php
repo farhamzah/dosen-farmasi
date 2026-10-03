@@ -11,6 +11,7 @@ class ProfileVisibilitySetting extends Model
         'section_visibility',
         'field_visibility',
         'public_profile_enabled',
+        'public_slug',
     ];
 
     protected function casts(): array

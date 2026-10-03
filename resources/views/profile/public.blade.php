@@ -50,7 +50,7 @@
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <nav class="flex flex-wrap gap-2" aria-label="Pilih tampilan CV">
                     @foreach($templates as $key => $template)
-                        <a href="{{ $preview ? route('profile.preview', ['template' => $key]) : route('profile.public', ['lecturerCoreId' => $visibility->lecturer_core_id, 'template' => $key]) }}" aria-current="{{ $selectedTemplate === $key ? 'page' : 'false' }}" title="{{ $template['description'] }}" class="rounded-[var(--radius-sm)] border px-3 py-2 text-xs font-bold {{ $selectedTemplate === $key ? 'border-[var(--brand-700)] bg-[var(--brand-800)] text-white' : 'border-[var(--border)] bg-white text-[var(--brand-800)]' }}">
+                        <a href="{{ $preview ? route('profile.preview', ['template' => $key]) : ($visibility->public_slug ? route('profile.share', ['slug' => $visibility->public_slug, 'template' => $key]) : route('profile.public', ['lecturerCoreId' => $visibility->lecturer_core_id, 'template' => $key])) }}" aria-current="{{ $selectedTemplate === $key ? 'page' : 'false' }}" title="{{ $template['description'] }}" class="rounded-[var(--radius-sm)] border px-3 py-2 text-xs font-bold {{ $selectedTemplate === $key ? 'border-[var(--brand-700)] bg-[var(--brand-800)] text-white' : 'border-[var(--border)] bg-white text-[var(--brand-800)]' }}">
                             {{ $template['label'] }}
                         </a>
                     @endforeach

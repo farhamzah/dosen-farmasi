@@ -265,7 +265,7 @@
                     <p class="text-xs font-semibold text-[var(--text-muted)]">{{ $visibilitySetting->public_profile_enabled ? 'Lihat CV yang dapat dibagikan' : 'Pratinjau pribadi · belum dibagikan' }}</p>
                     <div class="df-template-grid">
                         @foreach($cvTemplates as $template => $option)
-                            <a href="{{ $visibilitySetting->public_profile_enabled ? route('profile.public', ['lecturerCoreId' => $user->core_lecturer_id, 'template' => $template]) : route('profile.preview', ['template' => $template]) }}" class="df-profile-template-option">
+                            <a href="{{ $visibilitySetting->public_profile_enabled ? route('profile.share', ['slug' => $visibilitySetting->public_slug, 'template' => $template]) : route('profile.preview', ['template' => $template]) }}" class="df-profile-template-option">
                                 <span class="df-template-preview df-template-{{ $template }}" aria-hidden="true"><span class="df-template-paper"><strong>{{ $user->name }}</strong><span>Profil Akademik</span><i></i><i></i><i></i><span>Pendidikan dan karya ilmiah</span><i></i><i></i></span></span>
                                 <span class="block font-bold text-[var(--text-primary)]">{{ $option['label'] }}</span>
                                 <span class="mt-1 block text-xs leading-5 text-[var(--text-secondary)]">{{ $option['description'] }}</span>
@@ -273,6 +273,25 @@
                             </a>
                         @endforeach
                     </div>
+
+                    @if($visibilitySetting->public_profile_enabled && $visibilitySetting->public_slug)
+                        <div class="df-cv-share-box">
+                            <div>
+                                <p class="font-bold text-[var(--text-primary)]">Tautan CV siap dibagikan</p>
+                                <p class="mt-1 text-xs leading-5 text-[var(--text-secondary)]">Tautan ini menampilkan data yang Anda pilih sebagai Public. Perubahan profil akan ikut terbarui.</p>
+                            </div>
+                            <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+                                <input type="text" readonly aria-label="Tautan CV publik" value="{{ route('profile.share', ['slug' => $visibilitySetting->public_slug, 'template' => 'web']) }}" class="df-field min-w-0 flex-1 text-xs" data-cv-share-url>
+                                <button type="button" class="df-button df-button-primary" data-cv-copy>Salin tautan</button>
+                            </div>
+                            <a href="{{ route('profile.share', ['slug' => $visibilitySetting->public_slug, 'template' => 'web']) }}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex text-sm font-bold text-[var(--brand-700)] underline">Buka portofolio web</a>
+                        </div>
+                    @else
+                        <div class="df-cv-share-box">
+                            <p class="font-bold text-[var(--text-primary)]">CV masih privat</p>
+                            <p class="mt-1 text-xs leading-5 text-[var(--text-secondary)]">Pratinjau semua desain terlebih dahulu. Aktifkan profil publik di pengaturan visibilitas saat siap membagikannya.</p>
+                        </div>
+                    @endif
 
                     <a href="#visibilitas" class="df-button df-button-primary w-full">Atur Data yang Tampil</a>
                     <p class="text-xs leading-5 text-[var(--text-muted)]">NIK, alamat rumah, nomor HP pribadi, nomor dokumen, dan file bukti tidak ikut tampil di CV publik.</p>

@@ -61,6 +61,22 @@ document.addEventListener('click', (event) => {
     }
 });
 
+document.addEventListener('click', async event => {
+    const button = event.target.closest('[data-cv-copy]');
+    if (!button) return;
+    const url = button.closest('.df-cv-share-box')?.querySelector('[data-cv-share-url]')?.value;
+    if (!url) return;
+    try {
+        await navigator.clipboard.writeText(url);
+        button.textContent = 'Tersalin';
+        setTimeout(() => { button.textContent = 'Salin tautan'; }, 2500);
+    } catch {
+        const input = button.closest('.df-cv-share-box')?.querySelector('[data-cv-share-url]');
+        input?.focus();
+        input?.select();
+    }
+});
+
 document.addEventListener('click', event => {
     const opener = event.target.closest('[data-dialog-open]');
     if (opener) document.getElementById(opener.dataset.dialogOpen)?.showModal();

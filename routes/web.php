@@ -99,6 +99,7 @@ Route::middleware(['auth', 'dosen.role:dosen,admin'])->group(function (): void {
 });
 
 Route::get('/profil-publik/{lecturerCoreId}', [ProfileController::class, 'publicProfile'])->name('profile.public');
+Route::get('/cv-dosen/{slug}', [ProfileController::class, 'sharedProfile'])->name('profile.share');
 
 Route::get('/admin/dashboard', [DashboardController::class, 'admin'])
     ->middleware(['auth', 'dosen.role:admin'])

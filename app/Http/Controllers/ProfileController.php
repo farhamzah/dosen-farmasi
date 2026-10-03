@@ -16,6 +16,7 @@ use App\Models\ProfileVisibilitySetting;
 use App\Services\ProfileCompletenessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
@@ -33,11 +34,20 @@ class ProfileController extends Controller
             'label' => 'CV Ringkas',
             'description' => 'Untuk ringkasan cepat yang mudah dicetak sebagai PDF.',
         ],
+        'web' => [
+            'label' => 'Portofolio Web',
+            'description' => 'Halaman interaktif untuk dibuka dan dibagikan secara online.',
+        ],
     ];
 
     public function show(Request $request, ProfileCompletenessService $completeness)
     {
         $lecturerId = (string) $request->user()->core_lecturer_id;
+        $visibilitySetting = ProfileVisibilitySetting::query()->firstOrCreate(['lecturer_core_id' => $lecturerId]);
+
+        if ($visibilitySetting->public_profile_enabled && ! $visibilitySetting->public_slug) {
+            $visibilitySetting->update(['public_slug' => Str::random(24)]);
+        }
 
         return view('profile.show', [
             'user' => $request->user(),
@@ -48,7 +58,7 @@ class ProfileController extends Controller
             'certifications' => LecturerCertification::query()->where('lecturer_core_id', $lecturerId)->orderByDesc('issued_at')->get(),
             'identifiers' => LecturerExternalIdentifier::query()->where('lecturer_core_id', $lecturerId)->orderBy('identifier_type')->get(),
             'recentAcademicActivities' => PortfolioActivity::query()->where('lecturer_core_id', $lecturerId)->latest()->limit(5)->get(),
-            'visibilitySetting' => ProfileVisibilitySetting::query()->firstOrCreate(['lecturer_core_id' => $lecturerId]),
+            'visibilitySetting' => $visibilitySetting,
             'completeness' => $completeness->build($request->user()),
             'levels' => LecturerEducation::LEVELS,
             'identifierTypes' => LecturerExternalIdentifier::TYPES,
@@ -159,19 +169,21 @@ class ProfileController extends Controller
             'section_visibility.*' => ['in:PRIVATE,INTERNAL,PUBLIC'],
         ]);
 
-        ProfileVisibilitySetting::query()->updateOrCreate(
-            ['lecturer_core_id' => (string) $request->user()->core_lecturer_id],
-            [
-                'public_profile_enabled' => (bool) ($data['public_profile_enabled'] ?? false),
-                'section_visibility' => $data['section_visibility'] ?? [],
-                'field_visibility' => [
-                    'nik' => 'PRIVATE',
-                    'home_address' => 'PRIVATE',
-                    'personal_phone' => 'PRIVATE',
-                    'document_numbers' => 'PRIVATE',
-                ],
+        $visibility = ProfileVisibilitySetting::query()->firstOrCreate([
+            'lecturer_core_id' => (string) $request->user()->core_lecturer_id,
+        ]);
+
+        $visibility->update([
+            'public_profile_enabled' => (bool) ($data['public_profile_enabled'] ?? false),
+            'public_slug' => $visibility->public_slug ?: Str::random(24),
+            'section_visibility' => $data['section_visibility'] ?? [],
+            'field_visibility' => [
+                'nik' => 'PRIVATE',
+                'home_address' => 'PRIVATE',
+                'personal_phone' => 'PRIVATE',
+                'document_numbers' => 'PRIVATE',
             ],
-        );
+        ]);
 
         return redirect()->to(route('profile.show').'#visibilitas')->with('status', 'Pengaturan visibilitas disimpan.');
     }
@@ -184,6 +196,16 @@ class ProfileController extends Controller
             ->firstOrFail();
 
         return $this->renderCv($request, $lecturerCoreId, $visibility, false);
+    }
+
+    public function sharedProfile(Request $request, string $slug)
+    {
+        $visibility = ProfileVisibilitySetting::query()
+            ->where('public_slug', $slug)
+            ->where('public_profile_enabled', true)
+            ->firstOrFail();
+
+        return $this->renderCv($request, (string) $visibility->lecturer_core_id, $visibility, false);
     }
 
     public function previewProfile(Request $request)
@@ -202,7 +224,7 @@ class ProfileController extends Controller
         $selectedTemplate = $request->string('template')->lower()->toString();
         $selectedTemplate = array_key_exists($selectedTemplate, $templates) ? $selectedTemplate : 'akademik';
 
-        return view('profile.public', [
+        return view($selectedTemplate === 'web' ? 'profile.web' : 'profile.public', [
             'visibility' => $visibility,
             'templates' => $templates,
             'selectedTemplate' => $selectedTemplate,
