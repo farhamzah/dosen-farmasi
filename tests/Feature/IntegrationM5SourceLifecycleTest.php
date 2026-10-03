@@ -12,6 +12,7 @@ use App\Models\IntegrationSyncCursor;
 use App\Models\LecturerSnapshot;
 use App\Models\NotificationPreference;
 use App\Models\PortfolioActivity;
+use App\Models\PortfolioCategory;
 use App\Notifications\DosenDatabaseNotification;
 use App\Services\IntegrationTokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -51,7 +52,13 @@ class IntegrationM5SourceLifecycleTest extends TestCase
         $this->postJson('/api/internal/v1/events', $assignment, ['Authorization' => 'Bearer '.$token])->assertAccepted();
         $this->postJson('/api/internal/v1/events', $assignment, ['Authorization' => 'Bearer '.$token])->assertOk()->assertJsonPath('status', 'duplicate');
 
-        $this->assertSame(1, InboxItem::query()->where('source_record_id', 'kp-1')->count());
+        $invitation = InboxItem::query()->where('source_record_id', 'kp-1')->firstOrFail();
+        $this->assertSame('INVITATION', $invitation->type);
+        $this->assertSame('kp-farmasi', $invitation->source_app);
+        $this->actingAs($user)->get(route('dosen.inbox.index', ['type' => 'INVITATION']))
+            ->assertOk()
+            ->assertSee('KP - Penugasan PEMBIMBING_DALAM')
+            ->assertSee('Undangan');
 
         $this->postJson('/api/internal/v1/events', $this->eventPayload('kp-farmasi', 'kp.exam.scheduled', [
             'source_record_id' => 'kp-1',
@@ -96,7 +103,20 @@ class IntegrationM5SourceLifecycleTest extends TestCase
         ]), ['Authorization' => 'Bearer '.$token])->assertAccepted();
 
         $this->assertSame('COMPLETED', $calendar->fresh()->status);
-        $this->assertSame('SYSTEM_VERIFIED', PortfolioActivity::query()->where('source_record_id', 'kp-1')->firstOrFail()->verification_status);
+        $activity = PortfolioActivity::query()->where('source_record_id', 'kp-1')->firstOrFail();
+        $this->assertSame('SYSTEM_VERIFIED', $activity->verification_status);
+        $this->assertSame('Andi', $activity->student_name);
+        $this->assertSame('penguji-kp', $activity->activity_type);
+        $this->assertSame(
+            PortfolioCategory::query()->where('slug', 'pendidikan-dan-pengajaran')->firstOrFail()->id,
+            $activity->category_id,
+        );
+        $this->actingAs($user)->get(route('tridharma.domain', 'pendidikan'))
+            ->assertOk()
+            ->assertSee($activity->title);
+        $this->actingAs($user)->get(route('tridharma.domain', ['domain' => 'pendidikan', 'subcategory' => 'penguji KP']))
+            ->assertOk()
+            ->assertSee($activity->title);
 
         $this->postJson('/api/internal/v1/events', $this->eventPayload('kp-farmasi', 'kp.exam.cancelled', [
             'source_record_id' => 'kp-1',
@@ -136,6 +156,35 @@ class IntegrationM5SourceLifecycleTest extends TestCase
 
         $this->assertSame(1, PortfolioActivity::query()->where('source_entity', 'kpspa.activity')->count());
         $this->assertSame(1, PortfolioActivity::query()->where('source_entity', 'lab.activity')->count());
+    }
+
+    public function test_kp_portfolio_backfill_only_repairs_uncategorized_kp_exams(): void
+    {
+        $this->lecturer('10');
+
+        foreach ([['kp-farmasi', 'kp.exam'], ['kp-farmasi', 'kp.supervisor'], ['ta-farmasi', 'ta.exam']] as [$sourceApp, $sourceEntity]) {
+            PortfolioActivity::query()->create([
+                'lecturer_core_id' => '10',
+                'source_app' => $sourceApp,
+                'source_entity' => $sourceEntity,
+                'source_record_id' => $sourceEntity.'-'.$sourceApp,
+                'source_type' => 'SYSTEM',
+                'activity_type' => 'UJIAN_KP',
+                'lecturer_role' => $sourceEntity === 'kp.exam' ? 'PEMBIMBING_DALAM' : null,
+                'title' => $sourceEntity.' '.$sourceApp,
+                'verification_status' => 'SYSTEM_VERIFIED',
+                'visibility' => 'INTERNAL',
+            ]);
+        }
+
+        $migration = require database_path('migrations/2026_10_03_000001_backfill_kp_portfolio_categories.php');
+        $migration->up();
+
+        $categoryId = PortfolioCategory::query()->where('slug', 'pendidikan-dan-pengajaran')->firstOrFail()->id;
+        $this->assertSame($categoryId, PortfolioActivity::query()->where('source_entity', 'kp.exam')->value('category_id'));
+        $this->assertSame('pembimbing-kp', PortfolioActivity::query()->where('source_entity', 'kp.exam')->value('activity_type'));
+        $this->assertNull(PortfolioActivity::query()->where('source_entity', 'kp.supervisor')->value('category_id'));
+        $this->assertNull(PortfolioActivity::query()->where('source_entity', 'ta.exam')->value('category_id'));
     }
 
     public function test_ta_assignment_events_create_inbox_without_portfolio_before_completion(): void
@@ -335,11 +384,54 @@ class IntegrationM5SourceLifecycleTest extends TestCase
             'related_records' => ['portfolio_activity_id' => 999],
         ]);
 
+        IntegrationEvent::query()->create([
+            'event_id' => (string) Str::uuid(),
+            'event_type' => 'kp.supervisor.assigned',
+            'event_version' => 1,
+            'source_app' => 'kp-farmasi',
+            'source_record_id' => 'KP-ASSIGNMENT-NO-INVITATION',
+            'source_revision' => 1,
+            'lecturer_core_id' => '10',
+            'payload' => ['lecturer_core_id' => '10'],
+            'payload_hash' => hash('sha256', 'KP-ASSIGNMENT-NO-INVITATION'),
+            'status' => 'PROCESSED',
+            'processed_at' => now(),
+            'related_records' => [],
+        ]);
+
+        $uncategorizedActivity = PortfolioActivity::query()->create([
+            'lecturer_core_id' => '10',
+            'source_app' => 'kp-farmasi',
+            'source_entity' => 'kp.exam',
+            'source_record_id' => 'KP-EXAM-UNCATEGORIZED',
+            'source_type' => 'SYSTEM',
+            'activity_type' => 'UJIAN_KP',
+            'title' => 'Ujian KP tanpa kategori',
+            'verification_status' => 'SYSTEM_VERIFIED',
+            'visibility' => 'INTERNAL',
+        ]);
+        IntegrationEvent::query()->create([
+            'event_id' => (string) Str::uuid(),
+            'event_type' => 'kp.exam.completed',
+            'event_version' => 1,
+            'source_app' => 'kp-farmasi',
+            'source_record_id' => 'KP-EXAM-UNCATEGORIZED',
+            'source_revision' => 1,
+            'lecturer_core_id' => '10',
+            'payload' => ['lecturer_core_id' => '10'],
+            'payload_hash' => hash('sha256', 'KP-EXAM-UNCATEGORIZED'),
+            'status' => 'PROCESSED',
+            'processed_at' => now(),
+            'related_records' => ['portfolio_activity_id' => $uncategorizedActivity->id],
+        ]);
+
         $this->artisan('dosen:audit-kp-integration', ['--source-connection' => 'kp_audit_testing'])
             ->expectsOutputToContain('Mode: read-only')
             ->expectsOutputToContain('KP outbox table: available')
             ->expectsOutputToContain('SENT without consumer event: 1')
+            ->expectsOutputToContain('PROCESSED with missing inbox object: 1')
             ->expectsOutputToContain('Completed event missing SYSTEM_VERIFIED portfolio: 1')
+            ->expectsOutputToContain('Completed portfolio outside Tridharma Pendidikan: 1')
             ->assertSuccessful();
     }
 

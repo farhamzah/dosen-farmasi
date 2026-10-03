@@ -26,14 +26,14 @@
         <form method="get" class="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
             <select name="status" class="df-field">
                 <option value="">Semua status</option>
-                @foreach(['UNREAD', 'READ', 'ACCEPTED', 'DECLINED', 'COMPLETED', 'ARCHIVED'] as $status)
+                @foreach(['UNREAD', 'READ', 'ACCEPTED', 'DECLINED', 'COMPLETED', 'CANCELLED', 'ARCHIVED'] as $status)
                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ str($status)->replace('_', ' ')->title() }}</option>
                 @endforeach
             </select>
             <select name="type" class="df-field">
                 <option value="">Semua tipe</option>
-                @foreach(['TASK', 'INFO', 'WARNING', 'REMINDER'] as $type)
-                    <option value="{{ $type }}" @selected(request('type') === $type)>{{ str($type)->title() }}</option>
+                @foreach(['INVITATION' => 'Undangan', 'TASK' => 'Tugas', 'INFO' => 'Informasi', 'WARNING' => 'Peringatan', 'REMINDER' => 'Pengingat'] as $type => $label)
+                    <option value="{{ $type }}" @selected(request('type') === $type)>{{ $label }}</option>
                 @endforeach
             </select>
             <button class="df-button df-button-primary">Terapkan</button>
@@ -59,7 +59,7 @@
                                 <x-ui.badge :tone="$statusTone">{{ str($item->status)->replace('_', ' ')->title() }}</x-ui.badge>
                             </div>
                             <p class="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{{ $item->summary ?: 'Tidak ada ringkasan.' }}</p>
-                            <p class="mt-2 text-xs font-semibold text-[var(--text-muted)]">{{ str($item->type)->title() }} - {{ optional($item->occurred_at)->format('d M Y H:i') ?: optional($item->created_at)->format('d M Y H:i') }}</p>
+                            <p class="mt-2 text-xs font-semibold text-[var(--text-muted)]">{{ $item->type === 'INVITATION' ? 'Undangan' : str($item->type)->title() }} - {{ optional($item->occurred_at)->format('d M Y H:i') ?: optional($item->created_at)->format('d M Y H:i') }}</p>
                             @if(!empty($item->metadata['evidence_links']))
                                 <div class="mt-3 flex flex-wrap gap-2">
                                     @foreach($item->metadata['evidence_links'] as $link)

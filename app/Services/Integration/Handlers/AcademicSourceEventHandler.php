@@ -9,6 +9,7 @@ use App\Models\CalendarEvent;
 use App\Models\InboxItem;
 use App\Models\IntegrationEvent;
 use App\Models\PortfolioActivity;
+use App\Models\PortfolioCategory;
 use App\Services\AuditLogger;
 use App\Services\CalendarWorkflowService;
 use App\Services\InboxWorkflowService;
@@ -276,6 +277,17 @@ abstract class AcademicSourceEventHandler extends BaseIntegrationHandler impleme
                 ->where('lecturer_core_id', $data['lecturer_core_id'])
                 ->update(['status' => 'COMPLETED']);
 
+            $category = PortfolioCategory::query()->firstOrCreate(
+                ['slug' => 'pendidikan-dan-pengajaran'],
+                ['name' => 'Pendidikan dan Pengajaran', 'sort_order' => 1, 'is_active' => true],
+            );
+            $activityType = $data['activity_type'] ?? $this->eventType;
+            if ($event->source_app === 'kp-farmasi' && $activityType === 'UJIAN_KP') {
+                $activityType = str_starts_with(strtoupper($data['lecturer_role'] ?? $this->defaultRole), 'PEMBIMBING')
+                    ? 'pembimbing-kp'
+                    : 'penguji-kp';
+            }
+
             $activity = PortfolioActivity::query()->updateOrCreate(
                 [
                     'source_app' => $event->source_app,
@@ -284,10 +296,13 @@ abstract class AcademicSourceEventHandler extends BaseIntegrationHandler impleme
                     'lecturer_core_id' => $data['lecturer_core_id'],
                 ],
                 [
-                    'activity_type' => $data['activity_type'] ?? $this->eventType,
+                    'category_id' => $category->id,
+                    'activity_type' => $activityType,
                     'title' => $data['title'] ?? $this->completedTitle($data),
                     'description' => $this->summary($data),
                     'lecturer_role' => $data['lecturer_role'] ?? $this->defaultRole,
+                    'student_identifier' => $data['student_id'] ?? null,
+                    'student_name' => $data['student_name'] ?? null,
                     'academic_year' => $data['academic_year'] ?? null,
                     'semester' => $data['semester'] ?? null,
                     'start_date' => isset($data['completed_at']) ? Carbon::parse($data['completed_at'])->toDateString() : null,

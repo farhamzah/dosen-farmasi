@@ -6,6 +6,7 @@ use App\Models\CalendarEvent;
 use App\Models\InboxItem;
 use App\Models\IntegrationEvent;
 use App\Models\PortfolioActivity;
+use App\Models\PortfolioCategory;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -103,10 +104,22 @@ class AuditKpIntegrationCommand extends Command
         $missingInbox = $processed->filter(function (IntegrationEvent $event) use ($sourceApp): bool {
             $id = data_get($event->related_records, 'inbox_item_id');
 
-            return $id && ! InboxItem::query()
-                ->whereKey($id)
+            $expectsInbox = in_array($event->event_type, [
+                'kp.supervisor.assigned',
+                'kp.supervisor.changed',
+                'kp.examiner.assigned',
+                'kp.examiner.changed',
+            ], true);
+
+            if (! $id && ! $expectsInbox) {
+                return false;
+            }
+
+            return ! InboxItem::query()
+                ->when($id, fn ($query) => $query->whereKey($id))
                 ->where('source_app', $sourceApp)
                 ->where('source_record_id', $event->source_record_id)
+                ->where('lecturer_core_id', $event->lecturer_core_id ?: data_get($event->payload, 'lecturer_core_id'))
                 ->exists();
         });
 
@@ -141,14 +154,33 @@ class AuditKpIntegrationCommand extends Command
                     ->exists();
             });
 
+        $educationCategoryId = PortfolioCategory::query()
+            ->where('slug', 'pendidikan-dan-pengajaran')
+            ->value('id');
+        $completedOutsideTridharma = $processed
+            ->where('event_type', 'kp.exam.completed')
+            ->filter(function (IntegrationEvent $event) use ($sourceApp, $educationCategoryId): bool {
+                $portfolioId = data_get($event->related_records, 'portfolio_activity_id');
+                $activity = PortfolioActivity::query()
+                    ->when($portfolioId, fn ($query) => $query->whereKey($portfolioId))
+                    ->where('source_app', $sourceApp)
+                    ->where('source_record_id', $event->source_record_id)
+                    ->where('lecturer_core_id', $event->lecturer_core_id ?: data_get($event->payload, 'lecturer_core_id'))
+                    ->first();
+
+                return $activity && (! $educationCategoryId || (int) $activity->category_id !== (int) $educationCategoryId);
+            });
+
         $this->finding('PROCESSED with missing inbox object', $missingInbox->count());
         $this->finding('PROCESSED with missing calendar object', $missingCalendar->count());
         $this->finding('Completed event missing SYSTEM_VERIFIED portfolio', $completedMissingPortfolio->count());
+        $this->finding('Completed portfolio outside Tridharma Pendidikan', $completedOutsideTridharma->count());
 
         if ($showRows) {
             $this->showConsumerRows('missing-inbox', $missingInbox);
             $this->showConsumerRows('missing-calendar', $missingCalendar);
             $this->showConsumerRows('missing-portfolio', $completedMissingPortfolio);
+            $this->showConsumerRows('outside-tridharma', $completedOutsideTridharma);
         }
     }
 
