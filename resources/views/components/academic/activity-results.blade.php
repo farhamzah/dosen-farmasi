@@ -143,16 +143,16 @@
                                 <td class="hidden px-4 py-4 align-top xl:table-cell">{{ $documentLabel($activity) }}</td>
                                 <td class="px-4 py-4 align-top"><x-ui.badge :tone="$statusTone($activity)"><span aria-hidden="true">●</span> {{ $statusLabel($activity) }}</x-ui.badge></td>
                             @elseif($kind === 'hki')
-                                <td class="px-4 py-4 align-top font-semibold text-[var(--text-secondary)]">{{ $activity->start_date?->format('Y') ?: ($activity->academic_year ?: '-') }}</td>
+                                <td class="px-4 py-4 align-top font-semibold text-[var(--text-secondary)]">{{ $activity->end_date?->format('Y') ?: $activity->start_date?->format('Y') ?: ($activity->academic_year ?: '-') }}</td>
                                 <td class="max-w-xs px-4 py-4 align-top">
                                     <a href="{{ route('dosen.portfolio.show', $activity) }}" class="line-clamp-2 font-extrabold text-[var(--text-primary)] hover:text-[var(--brand-700)]">{{ $activity->title }}</a>
                                     <p class="mt-1 text-xs font-semibold text-[var(--text-muted)]">{{ $sourceLabel($activity) }}</p>
                                 </td>
-                                <td class="px-4 py-4 align-top">{{ $typeLabel($activity) }}</td>
-                                <td class="hidden px-4 py-4 align-top xl:table-cell">-</td>
-                                <td class="hidden px-4 py-4 align-top xl:table-cell">-</td>
-                                <td class="px-4 py-4 align-top">{{ $activity->lecturer_role ?: '-' }}</td>
-                                <td class="px-4 py-4 align-top"><x-ui.badge :tone="$statusTone($activity)"><span aria-hidden="true">●</span> {{ $statusLabel($activity) }}</x-ui.badge></td>
+                                <td class="px-4 py-4 align-top">{{ $activity->hki_type ?: $typeLabel($activity) }}</td>
+                                <td class="hidden px-4 py-4 align-top xl:table-cell">{{ $activity->hki_application_number ?: '-' }}</td>
+                                <td class="hidden px-4 py-4 align-top xl:table-cell">{{ $activity->hki_registration_number ?: '-' }}</td>
+                                <td class="px-4 py-4 align-top">{{ $activity->hki_rights_holder ?: '-' }}</td>
+                                <td class="px-4 py-4 align-top"><span class="font-semibold">{{ \App\Support\PortfolioUi::hkiStatusLabel($activity->hki_status) }}</span><span class="mt-1 block text-xs text-[var(--text-muted)]">{{ $statusLabel($activity) }}</span></td>
                                 <td class="hidden px-4 py-4 align-top lg:table-cell">{{ $documentLabel($activity) }}</td>
                             @elseif($kind === 'buku')
                                 <td class="px-4 py-4 align-top font-semibold text-[var(--text-secondary)]">{{ $activity->start_date?->format('Y') ?: ($activity->academic_year ?: '-') }}</td>
@@ -222,10 +222,17 @@
                     <x-ui.badge tone="brand">{{ $typeLabel($activity) }}</x-ui.badge>
                     <x-ui.badge :tone="$statusTone($activity)">{{ $statusLabel($activity) }}</x-ui.badge>
                     <x-ui.badge tone="neutral">{{ $sourceLabel($activity) }}</x-ui.badge>
+                    @if($kind === 'hki' && $activity->hki_status)
+                        <x-ui.badge tone="info">{{ \App\Support\PortfolioUi::hkiStatusLabel($activity->hki_status) }}</x-ui.badge>
+                    @endif
                 </div>
                 <dl class="mt-4 grid gap-2 text-sm text-[var(--text-secondary)]">
                     <div><dt class="inline font-bold text-[var(--text-primary)]">Peran:</dt> <dd class="inline">{{ $activity->lecturer_role ?: '-' }}</dd></div>
                     <div><dt class="inline font-bold text-[var(--text-primary)]">Periode:</dt> <dd class="inline">{{ $periodLabel($activity) }}</dd></div>
+                    @if($kind === 'hki')
+                        <div><dt class="inline font-bold text-[var(--text-primary)]">Jenis:</dt> <dd class="inline">{{ $activity->hki_type ?: '-' }}</dd></div>
+                        <div><dt class="inline font-bold text-[var(--text-primary)]">Nomor pencatatan:</dt> <dd class="inline break-all">{{ $activity->hki_registration_number ?: '-' }}</dd></div>
+                    @endif
                     @if($domain === 'penunjang')
                         <div><dt class="inline font-bold text-[var(--text-primary)]">Dokumen:</dt> <dd class="inline">{{ $documentLabel($activity) }}</dd></div>
                     @endif

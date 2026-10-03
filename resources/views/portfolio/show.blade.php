@@ -85,6 +85,19 @@
                 @endif
             </x-ui.card>
 
+            @if(\App\Support\PortfolioUi::isHki($activity->activity_type))
+                <x-ui.card class="p-5 sm:p-6">
+                    <x-ui.section-header title="Data HKI" description="Data permohonan dan pencatatan sesuai dokumen pendukung." />
+                    <dl class="mt-5 grid gap-4 sm:grid-cols-2">
+                        <div><dt class="text-xs font-bold text-[var(--text-muted)]">Jenis HKI</dt><dd class="mt-1 font-semibold">{{ $activity->hki_type ?: '-' }}</dd></div>
+                        <div><dt class="text-xs font-bold text-[var(--text-muted)]">Status hukum HKI</dt><dd class="mt-1 font-semibold">{{ \App\Support\PortfolioUi::hkiStatusLabel($activity->hki_status) }}</dd></div>
+                        <div><dt class="text-xs font-bold text-[var(--text-muted)]">Nomor permohonan</dt><dd class="mt-1 break-all font-semibold">{{ $activity->hki_application_number ?: '-' }}</dd></div>
+                        <div><dt class="text-xs font-bold text-[var(--text-muted)]">Nomor pencatatan/sertifikat</dt><dd class="mt-1 break-all font-semibold">{{ $activity->hki_registration_number ?: '-' }}</dd></div>
+                        <div class="sm:col-span-2"><dt class="text-xs font-bold text-[var(--text-muted)]">Pemegang hak</dt><dd class="mt-1 font-semibold">{{ $activity->hki_rights_holder ?: '-' }}</dd></div>
+                    </dl>
+                </x-ui.card>
+            @endif
+
             <x-ui.card class="p-5 sm:p-6">
                 <x-ui.section-header title="Peserta dan Kontributor" description="Dosen, mahasiswa, mitra, atau institusi yang terlibat dalam kegiatan." />
                 <div class="mt-5 space-y-3">
@@ -147,7 +160,7 @@
                 <x-ui.section-header title="Dokumen Pendukung" description="Bukti yang terhubung dengan aktivitas ini.">
                     <x-slot:actions>
                         @can('update', $activity)
-                            <x-ui.button :href="route('dosen.documents.create', ['portfolio_activity_id' => $activity->id, 'document_type' => 'SURAT_KEPUTUSAN', 'return_to_activity' => 1])" variant="secondary">Unggah SK / Surat</x-ui.button>
+                            <x-ui.button :href="route('dosen.documents.create', ['portfolio_activity_id' => $activity->id, 'document_type' => \App\Support\PortfolioUi::isHki($activity->activity_type) ? 'BUKTI_HKI' : 'SURAT_KEPUTUSAN', 'return_to_activity' => 1])" variant="secondary">{{ \App\Support\PortfolioUi::isHki($activity->activity_type) ? 'Unggah Bukti HKI' : 'Unggah SK / Surat' }}</x-ui.button>
                         @endcan
                     </x-slot:actions>
                 </x-ui.section-header>

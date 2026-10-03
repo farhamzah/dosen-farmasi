@@ -1,12 +1,14 @@
-@extends('layouts.app', ['title' => 'Edit Portofolio'])
+@extends('layouts.app', ['title' => \App\Support\PortfolioUi::isHki($activity->activity_type) ? 'Edit HKI' : 'Edit Portofolio'])
 
 @section('breadcrumb', 'Portofolio')
+
+@php($isHki = \App\Support\PortfolioUi::isHki($activity->activity_type))
 
 @section('content')
 <div class="space-y-6">
     <x-ui.page-header
         eyebrow="Portofolio"
-        title="Edit Aktivitas"
+        title="{{ $isHki ? 'Edit HKI' : 'Edit Aktivitas' }}"
         description="Perbarui data kegiatan sebelum dikirim atau dikembalikan ke alur verifikasi."
     >
         <x-slot:actions>
@@ -26,6 +28,12 @@
             <x-ui.card class="p-5 sm:p-6">
                 <x-ui.section-header title="Informasi Kegiatan" description="Data resmi kegiatan yang akan muncul di portofolio akademik." />
                 <div class="mt-5 grid gap-4 md:grid-cols-2">
+                    @if($isHki)
+                        <input type="hidden" name="category_id" value="{{ $activity->category_id }}">
+                        <input type="hidden" name="activity_type" value="hki-paten">
+                        <div class="grid gap-2 text-sm font-bold text-[var(--text-secondary)]"><span>Kategori</span><span class="df-field flex items-center">Penelitian dan Pengembangan</span></div>
+                        <div class="grid gap-2 text-sm font-bold text-[var(--text-secondary)]"><span>Jenis kegiatan</span><span class="df-field flex items-center">HKI/Paten</span></div>
+                    @else
                     <label class="grid gap-2 text-sm font-bold text-[var(--text-secondary)]">
                         Kategori
                         <select name="category_id" class="df-field">
@@ -39,6 +47,7 @@
                         Tipe kegiatan
                         <input name="activity_type" value="{{ old('activity_type', $activity->activity_type) }}" placeholder="Contoh: Mengajar, penelitian, hibah" class="df-field" required>
                     </label>
+                    @endif
                     <label class="grid gap-2 text-sm font-bold text-[var(--text-secondary)] md:col-span-2">
                         Judul
                         <input name="title" value="{{ old('title', $activity->title) }}" placeholder="Judul kegiatan akademik" class="df-field" required>
@@ -50,6 +59,10 @@
                 </div>
             </x-ui.card>
 
+            @if($isHki)
+                @include('portfolio.partials.hki-fields', ['activity' => $activity])
+            @endif
+
             <x-ui.card class="p-5 sm:p-6">
                 <x-ui.section-header title="Periode dan Keterlibatan" description="Perjelas kapan kegiatan berlangsung dan peran Anda di dalamnya." />
                 <div class="mt-5 grid gap-4 md:grid-cols-2">
@@ -57,6 +70,7 @@
                         Peran dosen
                         <input name="lecturer_role" value="{{ old('lecturer_role', $activity->lecturer_role) }}" placeholder="Ketua, anggota, pembimbing" class="df-field">
                     </label>
+                    @unless($isHki)
                     <label class="grid gap-2 text-sm font-bold text-[var(--text-secondary)]">
                         Tahun akademik
                         <input name="academic_year" value="{{ old('academic_year', $activity->academic_year) }}" placeholder="2026/2027" class="df-field">
@@ -65,6 +79,7 @@
                         Semester
                         <input name="semester" value="{{ old('semester', $activity->semester) }}" placeholder="Ganjil atau Genap" class="df-field">
                     </label>
+                    @endunless
                     <label class="grid gap-2 text-sm font-bold text-[var(--text-secondary)]">
                         Visibilitas
                         <select name="visibility" class="df-field">
@@ -74,13 +89,14 @@
                         </select>
                     </label>
                     <label class="grid gap-2 text-sm font-bold text-[var(--text-secondary)]">
-                        Tanggal mulai
+                        {{ $isHki ? 'Tanggal permohonan' : 'Tanggal mulai' }}
                         <input name="start_date" value="{{ old('start_date', optional($activity->start_date)->format('Y-m-d')) }}" type="date" class="df-field">
                     </label>
                     <label class="grid gap-2 text-sm font-bold text-[var(--text-secondary)]">
-                        Tanggal selesai
+                        {{ $isHki ? 'Tanggal pencatatan/terbit' : 'Tanggal selesai' }}
                         <input name="end_date" value="{{ old('end_date', optional($activity->end_date)->format('Y-m-d')) }}" type="date" class="df-field">
                     </label>
+                    @unless($isHki)
                     <label class="grid gap-2 text-sm font-bold text-[var(--text-secondary)]">
                         Institusi atau mitra
                         <input name="institution_name" value="{{ old('institution_name', $activity->institution_name) }}" placeholder="Nama institusi/mitra" class="df-field">
@@ -89,6 +105,7 @@
                         Lokasi
                         <input name="location" value="{{ old('location', $activity->location) }}" placeholder="Kota, kampus, atau daring" class="df-field">
                     </label>
+                    @endunless
                 </div>
             </x-ui.card>
         </div>

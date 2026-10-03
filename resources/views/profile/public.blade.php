@@ -128,6 +128,9 @@
                                         <div>
                                             <p class="text-base font-black text-[var(--text-primary)]">{{ $activity->title }}</p>
                                             <p class="mt-1 text-sm text-[var(--text-secondary)]">{{ $activity->category?->name ?? $activity->activity_type }} · {{ $activity->lecturer_role ?: 'Peran belum dipublikasikan' }}</p>
+                                            @if(\App\Support\PortfolioUi::isHki($activity->activity_type))
+                                                <p class="mt-1 text-sm text-[var(--text-secondary)]">{{ $activity->hki_type ?: 'HKI' }} · {{ \App\Support\PortfolioUi::hkiStatusLabel($activity->hki_status) }}</p>
+                                            @endif
                                         </div>
                                         <span class="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-[var(--brand-800)] ring-1 ring-[var(--border)]">{{ optional($activity->start_date)->format('Y') ?: $activity->academic_year }}</span>
                                     </div>

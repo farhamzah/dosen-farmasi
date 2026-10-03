@@ -8,6 +8,23 @@ use Illuminate\Support\Str;
 
 class PortfolioUi
 {
+    public static function isHki(?string $activityType): bool
+    {
+        return Str::slug((string) $activityType) === 'hki-paten';
+    }
+
+    public static function hkiStatusLabel(?string $status): string
+    {
+        return match ($status) {
+            'DIAJUKAN' => 'Diajukan',
+            'DIPROSES' => 'Diproses',
+            'TERCATAT' => 'Tercatat',
+            'TERBIT' => 'Terbit',
+            'LAINNYA' => 'Lainnya',
+            default => '-',
+        };
+    }
+
     public static function filterLabel(string $key): string
     {
         return match ($key) {

@@ -59,7 +59,11 @@
             <x-ui.filter-chip>{{ $total }} kegiatan</x-ui.filter-chip>
             <x-ui.filter-chip>{{ $progress }}% lengkap</x-ui.filter-chip>
             @if($activeDomain)
-                <x-ui.button :href="route('dosen.portfolio.create', ['domain' => $activeDomain])">Tambah Kegiatan</x-ui.button>
+                @if($activeDomain === 'penelitian' && request('subcategory') === 'hki-paten')
+                    <x-ui.button :href="route('dosen.portfolio.create', ['template' => 'hki'])">Tambah HKI</x-ui.button>
+                @else
+                    <x-ui.button :href="route('dosen.portfolio.create', ['domain' => $activeDomain])">Tambah Kegiatan</x-ui.button>
+                @endif
             @else
                 <x-ui.filter-chip>{{ $systemCount }} otomatis</x-ui.filter-chip>
                 <x-ui.filter-chip>{{ $manualCount }} manual</x-ui.filter-chip>

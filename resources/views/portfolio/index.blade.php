@@ -23,6 +23,7 @@
                 Tambah Kegiatan
             </x-ui.button>
             <x-ui.button :href="route('dosen.portfolio.create', ['template' => 'kepanitiaan'])" variant="secondary">Catat Kepanitiaan</x-ui.button>
+            <x-ui.button :href="route('dosen.portfolio.create', ['template' => 'hki'])" variant="secondary">Catat HKI</x-ui.button>
             <x-ui.button :href="route('tridharma.index')" variant="secondary">Buka Tridharma</x-ui.button>
         </x-slot:actions>
     </x-ui.page-header>

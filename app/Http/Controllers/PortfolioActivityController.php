@@ -51,12 +51,14 @@ class PortfolioActivityController extends Controller
     {
         $categories = PortfolioCategory::query()->where('is_active', true)->orderBy('sort_order')->get();
         $isCommittee = $request->query('template') === 'kepanitiaan';
+        $isHki = $request->query('template') === 'hki' || PortfolioUi::isHki(old('activity_type'));
         $domainSlug = app(TridharmaPortfolioService::class)->domain($request->string('domain')->toString())['category_slug'] ?? null;
 
         return view('portfolio.create', [
             'categories' => $categories,
-            'suggestedCategoryId' => $categories->firstWhere('slug', $isCommittee ? 'penunjang' : $domainSlug)?->id,
-            'suggestedActivityType' => $isCommittee ? 'Kepanitiaan' : null,
+            'suggestedCategoryId' => $categories->firstWhere('slug', $isCommittee ? 'penunjang' : ($isHki ? 'penelitian-dan-pengembangan' : $domainSlug))?->id,
+            'suggestedActivityType' => $isCommittee ? 'Kepanitiaan' : ($isHki ? 'hki-paten' : null),
+            'isHki' => $isHki,
         ]);
     }
 
@@ -76,6 +78,8 @@ class PortfolioActivityController extends Controller
             'location' => ['nullable', 'string', 'max:255'],
             'visibility' => ['required', 'in:PRIVATE,INTERNAL,PUBLIC'],
         ]);
+
+        $data = $this->withHkiData($request, $data);
 
         $activity = PortfolioActivity::query()->create([
             ...$data,
@@ -196,7 +200,7 @@ class PortfolioActivityController extends Controller
 
     private function activityData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'category_id' => ['nullable', 'exists:portfolio_categories,id'],
             'activity_type' => ['required', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
@@ -211,6 +215,26 @@ class PortfolioActivityController extends Controller
             'location' => ['nullable', 'string', 'max:255'],
             'visibility' => ['required', 'in:PRIVATE,INTERNAL,PUBLIC'],
         ]);
+
+        return $this->withHkiData($request, $data);
+    }
+
+    private function withHkiData(Request $request, array $data): array
+    {
+        if (! PortfolioUi::isHki($data['activity_type'])) {
+            return $data;
+        }
+
+        $category = PortfolioCategory::query()->where('slug', 'penelitian-dan-pengembangan')->firstOrFail();
+        $data['category_id'] = $category->id;
+
+        return [...$data, ...$request->validate([
+            'hki_type' => ['nullable', 'string', 'max:100'],
+            'hki_application_number' => ['nullable', 'string', 'max:100'],
+            'hki_registration_number' => ['nullable', 'string', 'max:100'],
+            'hki_rights_holder' => ['nullable', 'string', 'max:255'],
+            'hki_status' => ['nullable', 'in:DIAJUKAN,DIPROSES,TERCATAT,TERBIT,LAINNYA'],
+        ])];
     }
 
     private function filteredIndexQuery(Request $request)
