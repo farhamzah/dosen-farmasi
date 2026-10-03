@@ -16,7 +16,11 @@ class FoundationBootTest extends TestCase
         $this->get('/login')
             ->assertOk()
             ->assertSee('Masuk ke Dosen Farmasi')
+            ->assertSee('favicon-farmasi.png', false)
             ->assertSee('data-password-toggle', false);
+
+        $this->assertSame([128, 128], array_slice(getimagesize(public_path('images/favicon-farmasi.png')), 0, 2));
+        $this->assertGreaterThan(0, filesize(public_path('favicon.ico')));
     }
 
     public function test_dosen_dashboard_loads_empty_database(): void
@@ -64,7 +68,8 @@ class FoundationBootTest extends TestCase
         $this->actingAs($user)
             ->get(route('filament.admin.pages.admin-dashboard'))
             ->assertOk()
-            ->assertSee('Ruang Kontrol Admin');
+            ->assertSee('Ruang Kontrol Admin')
+            ->assertSee('favicon-farmasi.png', false);
     }
 
     public function test_admin_can_open_integration_clients_panel(): void

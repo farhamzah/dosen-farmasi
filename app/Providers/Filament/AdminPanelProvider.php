@@ -29,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->login(fn () => redirect()->route('login'))
             ->brandName('Dosen Farmasi UBP')
             ->brandLogo(fn (): string => asset('images/logo-fakultas-farmasi-ubp.png'))
+            ->favicon(fn (): string => asset('images/favicon-farmasi.png').'?v=1')
             ->brandLogoHeight('2.5rem')
             ->darkMode(false)
             ->sidebarCollapsibleOnDesktop()
